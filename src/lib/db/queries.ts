@@ -55,9 +55,19 @@ export async function updateDocument(
     docType?: string | null;
     status?: string;
     error?: string | null;
+    intelligence?: ExtractedIntelligence;
   }
 ) {
-  return prisma.document.update({ where: { id }, data });
+  const { intelligence, ...rest } = data;
+  return prisma.document.update({
+    where: { id },
+    data: {
+      ...rest,
+      ...(intelligence !== undefined
+        ? { intelligence: intelligence as unknown as Prisma.InputJsonValue }
+        : {}),
+    },
+  });
 }
 
 export async function setDocumentStatus(
@@ -75,8 +85,15 @@ export async function setDocumentStatus(
 
 /**
  * Upsert a Company from extracted intelligence, keyed by name (the firm's
- * memory of a startup is one record, even across multiple documents). New
- * non-empty fields are merged in; existing values are never clobbered by blanks.
+ * memory of a startup is one record, even across multiple documents).
+ *
+ * Merge policy so memory ACCUMULATES across a deck + memo + notes:
+ *   - Scalars (problem, traction, decision, …): refreshed only when the new
+ *     document actually has a value; an empty field never clobbers a known one.
+ *   - Arrays (founders, strengths, risks, concerns): UNION-ed across documents
+ *     and de-duplicated, so nothing any document said is lost.
+ * Matching is case-insensitive so slight name variants ("NimbusHealth" vs
+ * "Nimbus Health") still resolve to one memory.
  */
 export async function upsertCompanyFromExtraction(
   e: ExtractedIntelligence,
@@ -84,18 +101,79 @@ export async function upsertCompanyFromExtraction(
 ) {
   const name = e.company.trim();
   const metAt = opts.metAt ?? new Date();
-  const data = buildCompanyData(e);
 
-  const existing = await prisma.company.findFirst({ where: { name } });
+  // SQLite + Prisma can't do `mode: "insensitive"`, so compare in JS. Fine at
+  // the hundreds-of-companies scale of this app.
+  const all = await prisma.company.findMany();
+  const existing = all.find((c) => normalizeName(c.name) === normalizeName(name));
+
   if (existing) {
-    return prisma.company.update({
-      where: { id: existing.id },
-      data: { ...data, lastMetAt: metAt },
-    });
+    const data: Prisma.CompanyUncheckedUpdateInput = { lastMetAt: metAt };
+    if (e.sector) data.sector = e.sector;
+    if (e.stage) data.stage = e.stage;
+    if (e.oneLiner) data.oneLiner = e.oneLiner;
+    if (e.problem) data.problem = e.problem;
+    if (e.solution) data.solution = e.solution;
+    if (e.businessModel) data.businessModel = e.businessModel;
+    if (e.market) data.market = e.market;
+    if (e.traction) data.traction = e.traction;
+    if (e.competition) data.competition = e.competition;
+    if (e.decision) data.decision = e.decision;
+    if (e.decisionReason) data.decisionReason = e.decisionReason;
+    data.founders = unionFounders(existing.founders, e.founders) as unknown as Prisma.InputJsonValue;
+    data.strengths = unionStrings(existing.strengths, e.strengths) as unknown as Prisma.InputJsonValue;
+    data.risks = unionStrings(existing.risks, e.risks) as unknown as Prisma.InputJsonValue;
+    data.concerns = unionStrings(existing.concerns, e.concerns) as unknown as Prisma.InputJsonValue;
+    return prisma.company.update({ where: { id: existing.id }, data });
   }
+
   return prisma.company.create({
-    data: { name, ...data, firstMetAt: metAt, lastMetAt: metAt },
+    data: { name, ...buildCompanyData(e), firstMetAt: metAt, lastMetAt: metAt },
   });
+}
+
+function normalizeName(s: string): string {
+  return s.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/** Merge two string lists, trimmed and de-duplicated case-insensitively. */
+function unionStrings(existing: unknown, incoming?: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const item of [
+    ...(Array.isArray(existing) ? existing : []),
+    ...(incoming ?? []),
+  ]) {
+    if (typeof item !== "string") continue;
+    const t = item.trim();
+    const key = t.toLowerCase();
+    if (t && !seen.has(key)) {
+      seen.add(key);
+      out.push(t);
+    }
+  }
+  return out;
+}
+
+/** Merge founder lists by name, filling missing role/background from later mentions. */
+function unionFounders(existing: unknown, incoming?: Founder[]): Founder[] {
+  const byKey = new Map<string, Founder>();
+  const add = (f: unknown) => {
+    if (!f || typeof f !== "object") return;
+    const rec = f as Founder;
+    const name = (rec.name ?? "").trim();
+    if (!name) return;
+    const key = name.toLowerCase();
+    const prev = byKey.get(key);
+    byKey.set(key, {
+      name: prev?.name ?? name,
+      role: prev?.role ?? rec.role,
+      background: prev?.background ?? rec.background,
+    });
+  };
+  (Array.isArray(existing) ? existing : []).forEach(add);
+  (incoming ?? []).forEach(add);
+  return [...byKey.values()];
 }
 
 /** Only includes fields the model actually produced, so a merge never overwrites
@@ -239,6 +317,7 @@ export async function getCompany(id: string): Promise<CompanyDetail | null> {
           fileType: true,
           docType: true,
           createdAt: true,
+          intelligence: true,
         },
       },
     },
@@ -271,6 +350,7 @@ export async function getCompany(id: string): Promise<CompanyDetail | null> {
       fileType: d.fileType,
       docType: d.docType,
       createdAt: d.createdAt.toISOString(),
+      intelligence: (d.intelligence as ExtractedIntelligence | null) ?? undefined,
     })),
   };
 }

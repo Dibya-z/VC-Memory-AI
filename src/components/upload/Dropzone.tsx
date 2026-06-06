@@ -103,17 +103,20 @@ export function Dropzone() {
           void handleFiles(e.dataTransfer.files);
         }}
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed px-6 py-12 text-center transition-colors",
+          "flex cursor-pointer flex-col items-center justify-center border border-dashed px-6 py-16 text-center transition-colors duration-200",
           dragging
             ? "border-accent bg-accent/5"
-            : "border-border hover:border-accent/60 hover:bg-muted/40"
+            : "border-border hover:border-foreground/40 hover:bg-secondary"
         )}
       >
-        <UploadCloud className="mb-3 h-8 w-8 text-muted-foreground" />
-        <p className="text-sm font-medium">
+        <UploadCloud
+          className="mb-4 h-7 w-7 text-muted-foreground"
+          strokeWidth={1.5}
+        />
+        <p className="text-[15px] font-medium">
           Drop pitch decks, memos, or notes — or click to browse
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-1.5 text-[13px] text-muted-foreground">
           {UPLOAD.ACCEPTED_EXTENSIONS.join(" · ")} · up to{" "}
           {(UPLOAD.MAX_SIZE_BYTES / (1024 * 1024)).toFixed(0)} MB each
         </p>
@@ -146,15 +149,20 @@ export function Dropzone() {
 function FileRow({ item }: { item: Item }) {
   const { status, result } = item;
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <div className="border border-border bg-card p-4">
       <div className="flex items-center gap-3">
-        <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-        <span className="flex-1 truncate text-sm font-medium">{item.filename}</span>
+        <FileText
+          className="h-4 w-4 shrink-0 text-muted-foreground"
+          strokeWidth={1.5}
+        />
+        <span className="flex-1 truncate text-[14px] font-medium">
+          {item.filename}
+        </span>
         <StatusPill status={status} />
       </div>
 
       {status === "error" && result?.error && (
-        <p className="mt-2 pl-7 text-sm text-danger">{result.error}</p>
+        <p className="mt-2 pl-7 text-[14px] text-danger">{result.error}</p>
       )}
 
       {status === "done" && result?.intelligence && (
@@ -167,19 +175,20 @@ function FileRow({ item }: { item: Item }) {
 function StatusPill({ status }: { status: Status }) {
   if (status === "uploading")
     return (
-      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Reading & extracting…
+      <span className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" strokeWidth={1.5} /> Reading
+        &amp; extracting…
       </span>
     );
   if (status === "error")
     return (
-      <span className="flex items-center gap-1.5 text-xs text-danger">
-        <AlertCircle className="h-3.5 w-3.5" /> Failed
+      <span className="flex items-center gap-1.5 text-[13px] text-danger">
+        <AlertCircle className="h-3.5 w-3.5" strokeWidth={1.5} /> Failed
       </span>
     );
   return (
-    <span className="flex items-center gap-1.5 text-xs text-success">
-      <CheckCircle2 className="h-3.5 w-3.5" /> Added to memory
+    <span className="flex items-center gap-1.5 text-[13px] text-success">
+      <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={1.5} /> Added to memory
     </span>
   );
 }
@@ -187,24 +196,26 @@ function StatusPill({ status }: { status: Status }) {
 function IntelligenceCard({ intelligence }: { intelligence: ExtractedIntelligence }) {
   const i = intelligence;
   return (
-    <div className="mt-3 space-y-3 border-t pt-3 pl-7">
+    <div className="mt-4 space-y-3 border-t border-border pt-4 pl-7">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-base font-semibold">{i.company}</span>
+        <span className="text-[16px] font-medium">{i.company}</span>
         {i.sector && <Chip>{i.sector}</Chip>}
         {i.stage && <Chip>{i.stage}</Chip>}
         {i.decision && <DecisionBadge decision={i.decision} />}
       </div>
 
-      {i.oneLiner && <p className="text-sm text-muted-foreground">{i.oneLiner}</p>}
+      {i.oneLiner && (
+        <p className="text-[14px] text-muted-foreground">{i.oneLiner}</p>
+      )}
 
       {i.decision && i.decisionReason && (
-        <p className="text-sm">
+        <p className="text-[14px]">
           <span className="font-medium">Why {i.decision.toLowerCase()}: </span>
           {i.decisionReason}
         </p>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-x-10 gap-y-4 sm:grid-cols-2">
         <BulletList label="Strengths" items={i.strengths} tone="success" />
         <BulletList label="Risks" items={i.risks} tone="danger" />
         {i.concerns && i.concerns.length > 0 && (
@@ -212,10 +223,8 @@ function IntelligenceCard({ intelligence }: { intelligence: ExtractedIntelligenc
         )}
         {i.founders && i.founders.length > 0 && (
           <div>
-            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Founders
-            </p>
-            <ul className="space-y-0.5 text-sm">
+            <p className="label-eyebrow mb-1.5">Founders</p>
+            <ul className="space-y-0.5 text-[14px]">
               {i.founders.map((f, idx) => (
                 <li key={idx}>
                   {f.name}
@@ -228,7 +237,7 @@ function IntelligenceCard({ intelligence }: { intelligence: ExtractedIntelligenc
       </div>
 
       {i.traction && (
-        <p className="text-sm">
+        <p className="text-[14px]">
           <span className="font-medium">Traction: </span>
           {i.traction}
         </p>

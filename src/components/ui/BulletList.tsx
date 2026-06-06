@@ -25,9 +25,7 @@ export function BulletList({
   const dot = TONE_TOKEN[tone];
   return (
     <div>
-      <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
+      <p className="label-eyebrow mb-2">{label}</p>
       <ul className="space-y-1 text-sm">
         {items.map((item, idx) => (
           <li key={idx} className="flex gap-2">

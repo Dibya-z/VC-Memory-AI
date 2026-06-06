@@ -110,6 +110,8 @@ export interface CompanyDocument {
   fileType: string;
   docType: string | null;
   createdAt: string; // ISO
+  /** What this specific document suggested on its own (deck vs memo vs notes). */
+  intelligence?: ExtractedIntelligence;
 }
 
 /** Full company record for the detail page (JSON fields parsed, dates as ISO). */

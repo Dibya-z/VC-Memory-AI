@@ -1,20 +1,25 @@
 /**
- * Deal Analyzer page (Feature 3).
- * Upload a NEW startup deck -> analyze it AND compare against similar past deals
- * from memory. Posts to /api/analyze. Renders the analysis plus the matched
- * historical companies (what we concluded then, why it's relevant now).
- *
- * TODO(impl): upload control + <AnalysisReport /> + <SimilarDeals />.
+ * Deal Analyzer page (Feature 3 — analyze a new deck + compare to past deals).
+ * Not yet wired — editorial header + placeholder for now.
  */
+
+import { Sparkles } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Placeholder } from "@/components/ui/Placeholder";
+
 export default function AnalyzerPage() {
   return (
-    <div className="space-y-1">
-      <h1 className="text-2xl font-semibold tracking-tight">Deal analyzer</h1>
-      <p className="text-sm text-muted-foreground">
-        Upload a new deck. We analyze it and surface every comparable deal you
-        already evaluated.
-      </p>
-      {/* TODO: upload -> <AnalysisReport /> + <SimilarDeals /> */}
+    <div className="mx-auto max-w-3xl space-y-10 pb-12">
+      <PageHeader
+        eyebrow="Institutional Memory · Analysis"
+        title="Deal analyzer"
+        description="Upload a new deck. We analyze it and surface every comparable deal you've already evaluated — and what you concluded then."
+      />
+      <Placeholder
+        icon={Sparkles}
+        title="Deal analyzer is coming soon"
+        note="Drop in a new pitch deck and get an analysis plus the most similar past deals from memory, with the firm's prior reasoning."
+      />
     </div>
   );
 }

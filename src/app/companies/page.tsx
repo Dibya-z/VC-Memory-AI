@@ -4,7 +4,8 @@
  */
 
 import Link from "next/link";
-import { Building2, ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { CompanyCard } from "@/components/companies/CompanyCard";
 import { CompanyFilters } from "@/components/companies/CompanyFilters";
 import { listCompanies } from "@/lib/db/queries";
@@ -25,54 +26,62 @@ export default async function CompaniesPage({
   const filtered = Boolean(filters.sector || filters.decision || filters.stage);
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Company memory</h1>
-        <p className="text-sm text-muted-foreground">
-          Every startup you&apos;ve reviewed — filter by sector, decision, or stage.
-        </p>
-      </div>
+    <div className="space-y-12 pb-12">
+      <PageHeader
+        eyebrow="Institutional Memory · Companies"
+        title="Company memory"
+        description="Every startup the firm has reviewed — filter by sector, decision, or stage."
+      />
 
-      <CompanyFilters current={filters} />
+      <div className="space-y-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <CompanyFilters current={filters} />
+          {companies.length > 0 && (
+            <span className="label-eyebrow">
+              {companies.length} compan{companies.length === 1 ? "y" : "ies"}
+            </span>
+          )}
+        </div>
 
-      {companies.length === 0 ? (
-        filtered ? (
-          <p className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
-            No companies match these filters.
-          </p>
+        {companies.length === 0 ? (
+          filtered ? (
+            <p className="border-t border-border pt-12 text-[15px] text-muted-foreground">
+              No companies match these filters.
+            </p>
+          ) : (
+            <EmptyState />
+          )
         ) : (
-          <EmptyState />
-        )
-      ) : (
-        <>
-          <p className="text-xs text-muted-foreground">
-            {companies.length} compan{companies.length === 1 ? "y" : "ies"}
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-x-10 gap-y-12 sm:grid-cols-2 xl:grid-cols-3">
             {companies.map((c) => (
               <CompanyCard key={c.id} company={c} />
             ))}
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border border-dashed p-10 text-center">
-      <Building2 className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-      <p className="text-sm font-medium">No companies in memory yet</p>
-      <p className="mt-1 text-sm text-muted-foreground">
+    <section className="max-w-[680px] border-t border-border pt-12">
+      <h2 className="font-serif text-3xl font-normal tracking-tight">
+        No companies in memory yet
+      </h2>
+      <p className="mt-4 text-[16px] leading-relaxed text-muted-foreground">
         Upload a document to extract and store your first company.
       </p>
       <Link
         href="/upload"
-        className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
+        className="group mt-8 inline-flex h-12 items-center gap-2 bg-primary px-8 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
       >
-        Upload documents <ArrowUpRight className="h-4 w-4" />
+        Upload documents
+        <ArrowRight
+          className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+          strokeWidth={1.5}
+        />
       </Link>
-    </div>
+    </section>
   );
 }

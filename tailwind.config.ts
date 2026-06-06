@@ -1,9 +1,9 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Design tokens for a professional VC SaaS aesthetic (Linear / Notion inspired):
- * neutral surfaces, a restrained accent, generous spacing. Colors are wired to
- * CSS variables defined in src/app/globals.css so light/dark can be themed later.
+ * "Confident restraint" design tokens (rtp.vc / Linear inspired). Colors are
+ * wired to CSS variables in src/app/globals.css. Square corners, a single warm
+ * accent, hairline borders.
  */
 const config: Config = {
   darkMode: ["class"],
@@ -12,9 +12,13 @@ const config: Config = {
     container: {
       center: true,
       padding: "2rem",
-      screens: { "2xl": "1400px" },
+      screens: { "2xl": "1200px" },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "Cambria", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -41,15 +45,18 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Decision status colors (Interested / Passed / Invested / Tracking)
+        // Semantic status colors (Invested / Passed / Tracking / Interested).
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
         danger: "hsl(var(--danger))",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "var(--radius)", // 2px
+        md: "1px",
+        sm: "0px",
+      },
+      letterSpacing: {
+        label: "0.15em",
       },
     },
   },

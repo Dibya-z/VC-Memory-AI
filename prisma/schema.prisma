@@ -78,6 +78,10 @@ model Document {
   rawText   String // extracted full text
   sizeBytes Int?
 
+  // The structured intelligence THIS document yielded on its own, so the
+  // company view can show what each source (deck vs memo vs notes) suggested.
+  intelligence Json? // ExtractedIntelligence
+
   status String  @default("processed") // "processing" | "processed" | "failed"
   error  String?
 

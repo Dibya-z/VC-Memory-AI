@@ -1,11 +1,13 @@
 /**
  * Small presentational badges shared across the app (no "use client" — these
- * render fine in both server and client components).
+ * render fine in both server and client components). Restrained, editorial:
+ * decisions are a colored dot + uppercase label (semantic status, not a pill);
+ * meta chips are hairline-bordered, square, no fill.
  */
 
 import type { ReactNode } from "react";
 
-/** Maps each investment decision to its design-token color. */
+/** Maps each investment decision to its semantic design-token color. */
 const DECISION_TOKEN: Record<string, string> = {
   Invested: "var(--success)",
   Interested: "var(--accent)",
@@ -13,30 +15,28 @@ const DECISION_TOKEN: Record<string, string> = {
   Passed: "var(--danger)",
 };
 
-/** Colored pill for an investment decision (Invested / Interested / …). */
+/** Status label for an investment decision: dot + small uppercase text. */
 export function DecisionBadge({ decision }: { decision: string }) {
-  const token = DECISION_TOKEN[decision];
-  const style = token
-    ? {
-        color: `hsl(${token})`,
-        backgroundColor: `hsl(${token} / 0.1)`,
-        borderColor: `hsl(${token} / 0.25)`,
-      }
-    : undefined;
+  const token = DECISION_TOKEN[decision] ?? "var(--muted-foreground)";
+  const color = `hsl(${token})`;
   return (
     <span
-      className="rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-      style={style}
+      className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em]"
+      style={{ color }}
     >
+      <span
+        className="h-[6px] w-[6px] rounded-full"
+        style={{ backgroundColor: color }}
+      />
       {decision}
     </span>
   );
 }
 
-/** Neutral pill for metadata like sector / stage. */
+/** Hairline tag for metadata like sector / stage. Square, no fill. */
 export function Chip({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+    <span className="inline-flex items-center border border-border px-2 py-0.5 text-[13px] text-muted-foreground">
       {children}
     </span>
   );

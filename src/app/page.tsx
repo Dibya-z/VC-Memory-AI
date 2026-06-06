@@ -1,36 +1,49 @@
 /**
- * Dashboard. The firm's institutional memory at a glance: how much is stored,
- * the decision + sector mix, and the most recent uploads. Reads the query layer
- * directly (server component).
+ * Dashboard. Editorial header in the "confident restraint" language, with a
+ * clean hairline-card layout below for the stats, breakdowns, and recent
+ * uploads. Reads the query layer directly.
  */
 
 import Link from "next/link";
-import { Building2, FileText, Layers, ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { MemoryGraphic } from "@/components/dashboard/MemoryGraphic";
 import { DecisionBadge } from "@/components/ui/badges";
 import { getDashboardStats } from "@/lib/db/queries";
 import { timeAgo } from "@/lib/utils";
 
-// Always reflect the latest DB state rather than prerendering at build.
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Your firm&apos;s institutional memory at a glance.
-        </p>
-      </div>
+    <div className="space-y-12 pb-12">
+      {/* Editorial header — text left, knowledge-graph panel right */}
+      <header className="grid items-stretch gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)]">
+        <div className="flex max-w-[620px] flex-col justify-center">
+          <p className="label-eyebrow">Institutional Memory · Overview</p>
+          <h1 className="mt-6 font-serif text-6xl font-normal leading-[1.05] tracking-tight">
+            The firm&apos;s memory,
+            <br />
+            at a glance.
+          </h1>
+          <p className="mt-8 max-w-[520px] text-[18px] leading-relaxed text-muted-foreground">
+            Every decision, concern, and conversation the team has had — kept,
+            structured, and searchable.
+          </p>
+        </div>
+        <div className="hidden items-center justify-end lg:flex">
+          <MemoryGraphic />
+        </div>
+      </header>
 
       {stats.companyCount === 0 ? (
         <EmptyState />
       ) : (
-        <>
-          <div className="grid gap-4 sm:grid-cols-3">
+        <div className="space-y-5">
+          {/* Stats */}
+          <div className="grid gap-5 sm:grid-cols-3">
             <StatCard
               label="Companies in memory"
               value={stats.companyCount}
@@ -47,25 +60,29 @@ export default async function DashboardPage() {
             />
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Panel title="By decision">
+          {/* Breakdowns */}
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Panel label="By decision">
               {stats.decisionBreakdown.length === 0 ? (
                 <Muted>No decisions recorded yet.</Muted>
               ) : (
-                <div className="flex flex-wrap gap-3">
+                <ul>
                   {stats.decisionBreakdown.map((d) => (
-                    <div key={d.decision} className="flex items-center gap-2">
+                    <li
+                      key={d.decision}
+                      className="flex items-center justify-between border-b border-border py-3 last:border-0"
+                    >
                       <DecisionBadge decision={d.decision} />
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-[18px] font-light tabular-nums">
                         {d.count}
                       </span>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </Panel>
 
-            <Panel title="By sector">
+            <Panel label="By sector">
               {stats.sectorBreakdown.length === 0 ? (
                 <Muted>No sectors yet.</Muted>
               ) : (
@@ -74,24 +91,26 @@ export default async function DashboardPage() {
             </Panel>
           </div>
 
-          <Panel title="Recent uploads">
+          {/* Recent uploads */}
+          <Panel label="Recent uploads">
             {stats.recentUploads.length === 0 ? (
               <Muted>Nothing uploaded yet.</Muted>
             ) : (
-              <ul className="divide-y">
+              <ul>
                 {stats.recentUploads.map((u) => (
                   <li
                     key={u.id}
-                    className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+                    className="flex items-center gap-4 border-b border-border py-3 last:border-0"
                   >
-                    <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span className="flex-1 truncate text-sm">{u.filename}</span>
+                    <span className="flex-1 truncate text-[15px]">
+                      {u.filename}
+                    </span>
                     {u.companyName && (
-                      <span className="truncate text-sm text-muted-foreground">
+                      <span className="hidden truncate text-[15px] text-muted-foreground sm:block">
                         {u.companyName}
                       </span>
                     )}
-                    <span className="shrink-0 text-xs text-muted-foreground">
+                    <span className="label-eyebrow shrink-0">
                       {timeAgo(u.createdAt)}
                     </span>
                   </li>
@@ -99,7 +118,7 @@ export default async function DashboardPage() {
               </ul>
             )}
           </Panel>
-        </>
+        </div>
       )}
     </div>
   );
@@ -108,66 +127,68 @@ export default async function DashboardPage() {
 function SectorBars({ data }: { data: { sector: string; count: number }[] }) {
   const max = Math.max(...data.map((d) => d.count), 1);
   return (
-    <div className="space-y-2">
+    <ul className="space-y-3">
       {data.map((d) => (
-        <div key={d.sector} className="flex items-center gap-3">
-          <span className="w-36 shrink-0 truncate text-sm">{d.sector}</span>
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+        <li key={d.sector} className="flex items-center gap-4">
+          <span className="w-36 shrink-0 truncate text-[14px]">{d.sector}</span>
+          <div className="h-1.5 flex-1 bg-muted">
             <div
-              className="h-full rounded-full bg-accent"
+              className="h-1.5 bg-accent"
               style={{ width: `${(d.count / max) * 100}%` }}
             />
           </div>
-          <span className="w-6 shrink-0 text-right text-sm text-muted-foreground">
+          <span className="w-6 shrink-0 text-right text-[14px] font-light tabular-nums">
             {d.count}
           </span>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border border-dashed p-10 text-center">
-      <Building2 className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-      <p className="text-sm font-medium">No memory yet</p>
-      <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+    <section className="max-w-[680px] border-t border-border pt-12">
+      <h2 className="font-serif text-3xl font-normal tracking-tight">
+        No memory yet
+      </h2>
+      <p className="mt-4 text-[16px] leading-relaxed text-muted-foreground">
         Upload pitch decks, memos, or notes to start building your firm&apos;s
         institutional memory — or run{" "}
-        <code className="rounded bg-muted px-1 py-0.5 text-xs">
+        <code className="bg-secondary px-1.5 py-0.5 text-[13px]">
           npm run ingest:demo
         </code>{" "}
         to load the sample dataset.
       </p>
       <Link
         href="/upload"
-        className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
+        className="group mt-8 inline-flex h-12 items-center gap-2 bg-primary px-8 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
       >
-        Upload documents <ArrowUpRight className="h-4 w-4" />
+        Upload documents
+        <ArrowRight
+          className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+          strokeWidth={1.5}
+        />
       </Link>
-    </div>
+    </section>
   );
 }
 
 function Panel({
-  title,
+  label,
   children,
 }: {
-  title: string;
+  label: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border bg-card p-5">
-      <h2 className="mb-3 flex items-center gap-2 text-sm font-medium">
-        <Layers className="h-4 w-4 text-muted-foreground" />
-        {title}
-      </h2>
+    <section className="border border-border bg-card p-6">
+      <h2 className="label-eyebrow mb-5">{label}</h2>
       {children}
     </section>
   );
 }
 
 function Muted({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-muted-foreground">{children}</p>;
+  return <p className="text-[15px] text-muted-foreground">{children}</p>;
 }

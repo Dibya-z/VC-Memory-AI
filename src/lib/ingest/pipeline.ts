@@ -77,10 +77,12 @@ export async function ingestDocument(input: IngestInput): Promise<IngestResult> 
       metAt: input.metAt,
     });
 
-    // 5. Link the document to its company + record the doc type.
+    // 5. Link the document to its company, record the doc type, and store the
+    //    intelligence THIS document yielded (for the per-document view).
     await updateDocument(doc.id, {
       companyId: company.id,
       docType: intelligence.docType ?? null,
+      intelligence,
     });
 
     // 6. Chunk → embed → store the semantic index.

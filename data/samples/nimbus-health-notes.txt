@@ -1,0 +1,29 @@
+NimbusHealth — founder call notes
+Date: December 2025
+Sector: Healthcare
+Stage: Series A
+
+Who: Dr. Elena Vasquez (CEO), Kwame Boateng (CTO). Quick 30-min follow-up call.
+
+Vibe: Elena is impressive — clearly lived the documentation-burnout problem as a
+practicing internist. Kwame is the real speech-AI depth. Good founder chemistry.
+
+New things we learned:
+- They just signed their first multi-site health system (8 clinics) — biggest deal
+  to date, rolling out over Q1.
+- Adding a real-time "coding assistant" that flags under-coding during the visit;
+  early customers say it pays for the product on its own.
+
+Concerns that came up (worth tracking):
+- Small clinics are pushing back on the $299-399/seat price; may need a lighter tier.
+- Month-6 physician retention is still unproven — clinic renewal is strong (94%)
+  but we want to see individual doctors keep using it past the novelty period.
+- Liability/malpractice exposure on AI-drafted notes — they have a human-review
+  step, but indemnification policy is still being worked out with counsel.
+- A couple of competitors with more funding are chasing the same health systems.
+
+Strengths reinforced:
+- The ROI story is genuinely strong (time saved + cleaner coding).
+- Net revenue retention 121% — existing clinics expand fast.
+
+Next step: partner meeting + reference calls with two live clinics before we decide.

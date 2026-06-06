@@ -3,8 +3,7 @@
 /**
  * Sector / decision / stage filters for the Company Memory page. Drives
  * server-side filtering via the URL query string (shareable, no client fetch).
- * Current values come in as props from the server page, so this avoids
- * useSearchParams (and its Suspense requirement).
+ * Square hairline selects, focus = near-black border (no glow).
  */
 
 import { useRouter } from "next/navigation";
@@ -29,7 +28,7 @@ export function CompanyFilters({ current }: { current: Filters }) {
   const hasAny = Boolean(current.sector || current.decision || current.stage);
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-3">
       <Select
         value={current.sector ?? ""}
         label="Sector"
@@ -52,9 +51,9 @@ export function CompanyFilters({ current }: { current: Filters }) {
         <button
           type="button"
           onClick={() => router.push("/companies")}
-          className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center gap-1.5 px-2 py-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
         >
-          <X className="h-3.5 w-3.5" /> Clear
+          <X className="h-3.5 w-3.5" strokeWidth={1.5} /> Clear
         </button>
       )}
     </div>
@@ -76,7 +75,7 @@ function Select({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-md border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+      className="h-11 border border-input bg-background px-3 text-[14px] text-foreground transition-colors focus:border-foreground focus:outline-none"
     >
       <option value="">{label}: All</option>
       {options.map((o) => (
