@@ -1,0 +1,134 @@
+// ───────────────────────────────────────────────────────────────────────────
+// VC Memory AI — data model
+//
+// The whole point of the product is MEMORY: every document a VC uploads becomes
+// permanent, queryable institutional knowledge. This schema stores three layers:
+//
+//   1. Structured intelligence   -> Company   (the "what we concluded" layer)
+//   2. Raw source material        -> Document  (the original pitch deck / memo / notes)
+//   3. Semantic search index      -> Chunk     (embedded text for RAG retrieval)
+//
+// Plus Conversation/Message for the memory chatbot.
+//
+// Provider is SQLite for zero-config local dev. Swap `provider`/`url` for
+// PostgreSQL in production — no model changes required.
+// ───────────────────────────────────────────────────────────────────────────
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+/// A startup the firm has interacted with. Holds the AI-extracted structured
+/// investment intelligence — the durable "memory" of what the team concluded.
+model Company {
+  id   String @id @default(cuid())
+  name String
+
+  sector String? // e.g. "AI Infrastructure", "Fintech", "Developer Tools"
+  stage  String? // e.g. "Pre-seed", "Seed", "Series A"
+
+  oneLiner      String? // one-sentence summary
+  problem       String?
+  solution      String?
+  businessModel String?
+  market        String?
+  traction      String?
+  competition   String?
+
+  // Array/object fields are stored as JSON (SQLite has no native arrays).
+  founders Json? // [{ name, role, background }]
+  strengths Json? // string[]
+  risks     Json? // string[]
+  concerns  Json? // string[]  — specific investment concerns
+
+  // Decision memory — the answer to "why did we pass?"
+  decision       String? // "Interested" | "Passed" | "Invested" | "Tracking" | null
+  decisionReason String?
+
+  firstMetAt DateTime?
+  lastMetAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documents Document[]
+  chunks    Chunk[]
+
+  @@index([sector])
+  @@index([decision])
+  @@index([stage])
+}
+
+/// A raw source document uploaded by the user. Retained in full so the firm
+/// never loses the original context behind a conclusion.
+model Document {
+  id        String  @id @default(cuid())
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  filename String
+  fileType String // "pdf" | "txt" | "md"
+  docType  String? // "pitch_deck" | "memo" | "notes" | "other"
+
+  rawText   String // extracted full text
+  sizeBytes Int?
+
+  status String  @default("processed") // "processing" | "processed" | "failed"
+  error  String?
+
+  createdAt DateTime @default(now())
+
+  chunks Chunk[]
+
+  @@index([companyId])
+}
+
+/// A chunk of document text plus its embedding vector. This is the RAG retrieval
+/// unit — semantic search runs over these. Embedding is stored as a JSON number[]
+/// so the local cosine-similarity store can read it without an external service.
+model Chunk {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  content String
+  ordinal Int // position within the source document
+  embedding Json? // number[] vector (e.g. 1024-dim from voyage-3.5)
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([documentId])
+}
+
+/// A chat session with the firm's memory.
+model Conversation {
+  id        String    @id @default(cuid())
+  title     String?
+  createdAt DateTime  @default(now())
+  messages  Message[]
+}
+
+/// A single turn in a memory chat. Assistant turns may carry citations back to
+/// the companies/documents that grounded the answer.
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role      String // "user" | "assistant"
+  content   String
+  citations Json? // [{ companyId, companyName, snippet }]
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+}
