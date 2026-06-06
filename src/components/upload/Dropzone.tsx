@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UPLOAD } from "@/config/constants";
+import { Chip, DecisionBadge } from "@/components/ui/badges";
+import { BulletList } from "@/components/ui/BulletList";
 import type { ExtractedIntelligence, UploadResult } from "@/lib/types";
 
 type Status = "uploading" | "done" | "error";
@@ -232,72 +234,6 @@ function IntelligenceCard({ intelligence }: { intelligence: ExtractedIntelligenc
         </p>
       )}
     </div>
-  );
-}
-
-function BulletList({
-  label,
-  items,
-  tone,
-}: {
-  label: string;
-  items?: string[];
-  tone: "success" | "danger" | "warning";
-}) {
-  if (!items || items.length === 0) return null;
-  const dot =
-    tone === "success" ? "var(--success)" : tone === "danger" ? "var(--danger)" : "var(--warning)";
-  return (
-    <div>
-      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <ul className="space-y-1 text-sm">
-        {items.map((it, idx) => (
-          <li key={idx} className="flex gap-2">
-            <span
-              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ backgroundColor: `hsl(${dot})` }}
-            />
-            <span>{it}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-      {children}
-    </span>
-  );
-}
-
-const DECISION_TOKEN: Record<string, string> = {
-  Invested: "var(--success)",
-  Interested: "var(--accent)",
-  Tracking: "var(--warning)",
-  Passed: "var(--danger)",
-};
-
-function DecisionBadge({ decision }: { decision: string }) {
-  const token = DECISION_TOKEN[decision];
-  const style = token
-    ? {
-        color: `hsl(${token})`,
-        backgroundColor: `hsl(${token} / 0.1)`,
-        borderColor: `hsl(${token} / 0.25)`,
-      }
-    : undefined;
-  return (
-    <span
-      className="rounded-full border px-2.5 py-0.5 text-xs font-semibold"
-      style={style}
-    >
-      {decision}
-    </span>
   );
 }
 

@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
+import { getDashboardStats } from "@/lib/db/queries";
 
 /**
- * GET /api/stats — dashboard summary.
- * Returns DashboardStats: company/document counts, sector & decision
- * breakdowns, and recent uploads.
- *
- * TODO(impl): aggregate via lib/db/queries.getDashboardStats().
+ * GET /api/stats — dashboard summary (DashboardStats).
+ * The dashboard page reads the query layer directly; this endpoint exists for
+ * client-side or external consumers.
  */
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic"; // reflects live DB; never prerender
+
 export async function GET() {
-  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
+  const stats = await getDashboardStats();
+  return NextResponse.json(stats);
 }

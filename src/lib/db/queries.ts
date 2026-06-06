@@ -14,7 +14,13 @@
 
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
-import type { ExtractedIntelligence } from "@/lib/types";
+import type {
+  CompanyDetail,
+  CompanyListItem,
+  DashboardStats,
+  ExtractedIntelligence,
+  Founder,
+} from "@/lib/types";
 
 export { prisma };
 
@@ -133,6 +139,148 @@ export async function saveChunks(
       embedding: c.embedding as unknown as Prisma.InputJsonValue,
     })),
   });
+}
+
+// ── Reads (Step 3 — dashboard + company memory) ──────────────────────────────
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const [companyCount, documentCount, sectorGroups, decisionGroups, recent] =
+    await Promise.all([
+      prisma.company.count(),
+      prisma.document.count(),
+      prisma.company.groupBy({ by: ["sector"], _count: { _all: true } }),
+      prisma.company.groupBy({ by: ["decision"], _count: { _all: true } }),
+      prisma.document.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        select: {
+          id: true,
+          filename: true,
+          createdAt: true,
+          company: { select: { name: true } },
+        },
+      }),
+    ]);
+
+  const sectorBreakdown = sectorGroups
+    .filter((g) => g.sector)
+    .map((g) => ({ sector: g.sector as string, count: g._count._all }))
+    .sort((a, b) => b.count - a.count);
+
+  const decisionBreakdown = decisionGroups
+    .filter((g) => g.decision)
+    .map((g) => ({ decision: g.decision as string, count: g._count._all }))
+    .sort((a, b) => b.count - a.count);
+
+  const recentUploads = recent.map((d) => ({
+    id: d.id,
+    filename: d.filename,
+    companyName: d.company?.name ?? null,
+    createdAt: d.createdAt.toISOString(),
+  }));
+
+  return {
+    companyCount,
+    documentCount,
+    sectorBreakdown,
+    decisionBreakdown,
+    recentUploads,
+  };
+}
+
+export async function listCompanies(
+  filters: { sector?: string; decision?: string; stage?: string } = {}
+): Promise<CompanyListItem[]> {
+  const where: Prisma.CompanyWhereInput = {};
+  if (filters.sector) where.sector = filters.sector;
+  if (filters.decision) where.decision = filters.decision;
+  if (filters.stage) where.stage = filters.stage;
+
+  const rows = await prisma.company.findMany({
+    where,
+    orderBy: [{ lastMetAt: "desc" }, { createdAt: "desc" }],
+    select: {
+      id: true,
+      name: true,
+      sector: true,
+      stage: true,
+      decision: true,
+      oneLiner: true,
+      lastMetAt: true,
+      strengths: true,
+      risks: true,
+      _count: { select: { documents: true } },
+    },
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    sector: r.sector,
+    stage: r.stage,
+    decision: r.decision,
+    oneLiner: r.oneLiner,
+    lastMetAt: r.lastMetAt ? r.lastMetAt.toISOString() : null,
+    strengthsCount: countArray(r.strengths),
+    risksCount: countArray(r.risks),
+    documentCount: r._count.documents,
+  }));
+}
+
+export async function getCompany(id: string): Promise<CompanyDetail | null> {
+  const c = await prisma.company.findUnique({
+    where: { id },
+    include: {
+      documents: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          filename: true,
+          fileType: true,
+          docType: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+  if (!c) return null;
+
+  return {
+    id: c.id,
+    name: c.name,
+    sector: c.sector,
+    stage: c.stage,
+    oneLiner: c.oneLiner,
+    problem: c.problem,
+    solution: c.solution,
+    businessModel: c.businessModel,
+    market: c.market,
+    traction: c.traction,
+    competition: c.competition,
+    founders: asArray<Founder>(c.founders),
+    strengths: asArray<string>(c.strengths),
+    risks: asArray<string>(c.risks),
+    concerns: asArray<string>(c.concerns),
+    decision: c.decision,
+    decisionReason: c.decisionReason,
+    firstMetAt: c.firstMetAt ? c.firstMetAt.toISOString() : null,
+    lastMetAt: c.lastMetAt ? c.lastMetAt.toISOString() : null,
+    documents: c.documents.map((d) => ({
+      id: d.id,
+      filename: d.filename,
+      fileType: d.fileType,
+      docType: d.docType,
+      createdAt: d.createdAt.toISOString(),
+    })),
+  };
+}
+
+function asArray<T>(v: unknown): T[] {
+  return Array.isArray(v) ? (v as T[]) : [];
+}
+
+function countArray(v: unknown): number {
+  return Array.isArray(v) ? v.length : 0;
 }
 
 // ── Health check ─────────────────────────────────────────────────────────────

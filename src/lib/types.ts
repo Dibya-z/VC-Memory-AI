@@ -89,6 +89,53 @@ export interface InvestmentBrief {
   recommendation: string;
 }
 
+/** A company row for the Company Memory list (Step 3). */
+export interface CompanyListItem {
+  id: string;
+  name: string;
+  sector: string | null;
+  stage: string | null;
+  decision: string | null;
+  oneLiner: string | null;
+  lastMetAt: string | null; // ISO
+  strengthsCount: number;
+  risksCount: number;
+  documentCount: number;
+}
+
+/** A source document shown on the company detail page. */
+export interface CompanyDocument {
+  id: string;
+  filename: string;
+  fileType: string;
+  docType: string | null;
+  createdAt: string; // ISO
+}
+
+/** Full company record for the detail page (JSON fields parsed, dates as ISO). */
+export interface CompanyDetail {
+  id: string;
+  name: string;
+  sector: string | null;
+  stage: string | null;
+  oneLiner: string | null;
+  problem: string | null;
+  solution: string | null;
+  businessModel: string | null;
+  market: string | null;
+  traction: string | null;
+  competition: string | null;
+  founders: Founder[];
+  strengths: string[];
+  risks: string[];
+  concerns: string[];
+  decision: string | null;
+  decisionReason: string | null;
+  firstMetAt: string | null; // ISO
+  lastMetAt: string | null; // ISO
+  documents: CompanyDocument[];
+}
+
 /** Per-file result returned by POST /api/upload (Feature 1). */
 export interface UploadResult {
   filename: string;
