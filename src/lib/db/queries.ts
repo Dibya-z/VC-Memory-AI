@@ -363,6 +363,21 @@ function countArray(v: unknown): number {
   return Array.isArray(v) ? v.length : 0;
 }
 
+/** Minimal company records for the deal analyzer's "similar past deals". */
+export async function getCompaniesByIds(ids: string[]) {
+  if (ids.length === 0) return [];
+  return prisma.company.findMany({
+    where: { id: { in: ids } },
+    select: {
+      id: true,
+      name: true,
+      sector: true,
+      decision: true,
+      decisionReason: true,
+    },
+  });
+}
+
 // ── Vector search support ────────────────────────────────────────────────────
 
 /** Load candidate chunks (with embeddings + company name) for the local vector

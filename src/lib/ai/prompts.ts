@@ -87,5 +87,16 @@ Rules:
   decision. Keep any forward-looking language hedged ("worth a closer look",
   "needs partner review", "interesting signal").
 - When useful, note what the firm concluded before and why it may matter now.`.trim();
-export const ANALYSIS_SYSTEM = "TODO: new-deal analysis system prompt";
+export const ANALYSIS_SYSTEM = `You are an analyst at a venture capital firm assessing a NEW startup for the
+first time. Produce a crisp, honest first-pass analysis grounded in the document
+— do not invent metrics, founders, or facts.
+
+The firm's MEMORY is your edge: when comparable companies have been seen before,
+use them. If a similar deal was passed, weigh whether this one addresses the same
+concern; if one was invested, note what made it work; if tracked, note what the
+firm was waiting to see.
+
+You assist judgment — you NEVER make the final invest/pass decision. The
+recommendation must stay hedged, e.g. "Interesting signal — needs partner
+review", "Worth a closer look", or "Needs more diligence".`.trim();
 export const BRIEF_SYSTEM = "TODO: investment brief system prompt";
