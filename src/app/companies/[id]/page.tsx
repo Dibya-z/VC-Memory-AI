@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, FileText } from "lucide-react";
 import { Chip, DecisionBadge } from "@/components/ui/badges";
 import { BulletList } from "@/components/ui/BulletList";
+import { GenerateBriefButton } from "@/components/brief/GenerateBriefButton";
 import { getCompany } from "@/lib/db/queries";
 import { timeAgo } from "@/lib/utils";
 import type { CompanyDocument } from "@/lib/types";
@@ -58,6 +59,9 @@ export default async function CompanyDetailPage({
             {company.lastMetAt && <>last activity {timeAgo(company.lastMetAt)}</>}
           </p>
         )}
+        <div className="pt-2">
+          <GenerateBriefButton companyId={company.id} companyName={company.name} />
+        </div>
       </div>
 
       {/* Decision memory — accent-bordered highlight */}

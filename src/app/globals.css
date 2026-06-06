@@ -90,3 +90,40 @@
     }
   }
 }
+
+/*
+ * Print: the investment-brief overlay is portaled to <body> as `.brief-overlay`.
+ * On screen it's `position: fixed`, and fixed elements get repeated on every
+ * printed page (that's the "page 1 six times" bug). For print we hide every
+ * other body child and reset the overlay + sheet to a normal static document so
+ * the brief flows naturally across pages.
+ */
+@media print {
+  body > *:not(.brief-overlay) {
+    display: none !important;
+  }
+
+  .brief-overlay {
+    position: static !important;
+    overflow: visible !important;
+    background: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  .brief-sheet {
+    position: static !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .brief-no-print {
+    display: none !important;
+  }
+}
