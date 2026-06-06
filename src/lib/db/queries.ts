@@ -363,6 +363,31 @@ function countArray(v: unknown): number {
   return Array.isArray(v) ? v.length : 0;
 }
 
+// ── Vector search support ────────────────────────────────────────────────────
+
+/** Load candidate chunks (with embeddings + company name) for the local vector
+ *  store, applying company include/exclude filters at the DB level. */
+export async function loadSearchChunks(opts: {
+  companyId?: string;
+  excludeCompanyId?: string;
+} = {}) {
+  const where: Prisma.ChunkWhereInput = {};
+  if (opts.companyId) where.companyId = opts.companyId;
+  if (opts.excludeCompanyId) where.companyId = { not: opts.excludeCompanyId };
+
+  return prisma.chunk.findMany({
+    where,
+    select: {
+      id: true,
+      documentId: true,
+      companyId: true,
+      content: true,
+      embedding: true,
+      company: { select: { name: true } },
+    },
+  });
+}
+
 // ── Health check ─────────────────────────────────────────────────────────────
 
 export async function ping(): Promise<boolean> {
