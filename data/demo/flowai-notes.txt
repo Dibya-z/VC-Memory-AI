@@ -1,0 +1,35 @@
+FlowAI — Founder meeting notes
+Met: October 2025
+Sector: SaaS (AI workflow automation)
+Stage: Seed
+Status: TRACKING (not investing now, stay close)
+
+Who we met:
+- Grace Lin, CEO. Ex-product manager at a big workflow/automation company. Sharp on GTM, very fast.
+- Raj Patel, CTO. Solid engineer, built the v1 mostly solo.
+
+What they do:
+FlowAI is "Zapier with an AI brain." Instead of building automations step by step, you describe the outcome in plain English ("when a new enterprise lead comes in, enrich it, score it, and route hot ones to the right rep on Slack") and FlowAI assembles and runs the workflow. Connects to ~80 SaaS apps today.
+
+Why it's interesting:
+- The natural-language-to-workflow demo is slick and clearly resonates with non-technical ops people.
+- Time-to-first-automation is minutes vs hours for traditional tools.
+- Riding the same wave as a lot of "AI agent" enthusiasm, but with a concrete, boring, useful job-to-be-done.
+
+Traction:
+- ~$9k MRR, mostly $29-49/mo prosumer plans.
+- 1,300 signups, ~250 activated (built at least one live automation).
+- Growth is okay but not explosive: ~10% MoM.
+
+Concerns (why we're tracking, not investing):
+- PRICING: $29-49/mo is too low for the value and too high for hobbyists — stuck in the middle. No clear path to expansion revenue yet. They haven't figured out seat/usage pricing.
+- RETENTION: month-2 retention around 55%. People build one automation and drift. Needs to become a system-of-record habit.
+- Reliability: when an automation silently fails, trust evaporates. Error handling / observability is thin.
+- Crowded "AI automation" space; differentiation today is UX, which is copyable.
+
+What would make us lean in:
+- Move upmarket to teams with proper pricing and show net revenue retention > 110%.
+- Demonstrate month-3 retention improving materially.
+- A reliability/observability story so automations are trustworthy.
+
+Next step: check back in one to two quarters. Intro'd them to two ops leaders in our network for design feedback.

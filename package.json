@@ -12,7 +12,7 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "ingest:demo": "tsx scripts/ingest-demo.ts",
-    "setup": "prisma db push && npm run db:seed && npm run ingest:demo"
+    "setup": "prisma db push && npm run ingest:demo"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -36,6 +36,7 @@
     "@types/react": "^18.3.17",
     "@types/react-dom": "^18.3.5",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.5",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.20",
     "postcss": "^8.4.49",

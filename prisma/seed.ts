@@ -1,33 +1,12 @@
 /**
- * Database seeder. Populates the firm's memory with a realistic demo dataset so
- * the product works the moment it's opened — including PAST INVESTMENT DECISIONS
- * so the memory-comparison features have something to compare against.
+ * Database seeder. Delegates to the demo corpus loader so `npm run db:seed`,
+ * `prisma db seed`, and `prisma migrate reset` all populate the same realistic
+ * memory the app ships with.
  *
- * Planned demo companies (mix of sectors + decisions):
- *   - CloudBrain AI   (AI Infrastructure, Seed)   -> Passed  (unclear enterprise adoption)
- *   - CodeFlow AI     (Developer Tools, Seed)      -> Passed  (weak team adoption)
- *   - LedgerLite      (Fintech, Series A)          -> Invested
- *   - FlowAI          (SaaS, Seed)                 -> Tracking (pricing/retention concerns)
- *   - VaultGuard      (Cybersecurity, Seed)        -> Interested
- *
- * Run: npm run db:seed   (or `npm run setup` for push + seed + demo ingest)
- *
- * TODO(impl): either insert structured companies directly, or (preferred) write
- * the demo source documents to data/demo and run them through the real
- * ingestion pipeline via scripts/ingest-demo.ts so embeddings exist for search.
+ * The canonical implementation lives in scripts/ingest-demo.ts — it runs the
+ * demo documents through the REAL ingestion pipeline so embeddings exist for
+ * search (rather than inserting hand-written rows). Importing it here triggers
+ * that run; needs GROQ_API_KEY + VOYAGE_API_KEY in .env.
  */
 
-import { prisma } from "@/lib/db/prisma";
-
-async function main() {
-  // TODO(impl): seed demo companies + documents + chunks/embeddings.
-  console.log("Seed: not implemented yet. Connected to DB:", !!prisma);
-}
-
-main()
-  .then(() => prisma.$disconnect())
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+import "../scripts/ingest-demo";

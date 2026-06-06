@@ -89,6 +89,16 @@ export interface InvestmentBrief {
   recommendation: string;
 }
 
+/** Per-file result returned by POST /api/upload (Feature 1). */
+export interface UploadResult {
+  filename: string;
+  ok: boolean;
+  error?: string;
+  companyId?: string;
+  documentId?: string;
+  intelligence?: ExtractedIntelligence;
+}
+
 /** Dashboard summary stats (Feature: Dashboard). */
 export interface DashboardStats {
   companyCount: number;
