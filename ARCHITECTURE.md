@@ -30,7 +30,7 @@ history rather than generic knowledge.
       Semantic retrieval                 lib/vector (cosine)
               │
               ▼
-        LLM reasoning                    lib/ai (Claude Opus 4.8)
+        LLM reasoning                    lib/ai (Groq · Llama 3.3 70B)
               │
               ▼
       Grounded response                  chat / analysis / brief
@@ -51,7 +51,7 @@ Two complementary stores are written on every ingest:
 |---|---|---|
 | **Pages (UI)** | `src/app/*/page.tsx` | Dashboard, Upload, Company Memory, Chat, Deal Analyzer |
 | **API routes** | `src/app/api/*/route.ts` | Thin HTTP handlers → lib functions |
-| **AI** | `src/lib/ai` | Extraction, chat, analysis, brief; prompts + Claude client |
+| **AI** | `src/lib/ai` | Extraction, chat, analysis, brief; prompts + Groq client |
 | **Embeddings** | `src/lib/embeddings` | Voyage AI client (provider-swappable facade) |
 | **Vector** | `src/lib/vector` | `VectorStore` interface + local cosine implementation |
 | **Ingestion** | `src/lib/ingest` | Text extraction, chunking, end-to-end pipeline |
@@ -59,7 +59,7 @@ Two complementary stores are written on every ingest:
 | **Config/types** | `src/config`, `src/lib/types.ts` | Enums, RAG params, shared types |
 
 Each seam is an interface or a small module so pieces can be swapped:
-- **LLM** — all calls go through `lib/ai/anthropic.ts` (model IDs centralized).
+- **LLM** — all calls go through `lib/ai/llm.ts` (provider + model IDs centralized).
 - **Embeddings** — callers import `lib/embeddings`, not the Voyage file directly.
 - **Vector store** — callers depend on the `VectorStore` interface; the default
   `LocalVectorStore` can be replaced with Chroma/Pinecone/pgvector with no
@@ -97,14 +97,20 @@ See [`prisma/schema.prisma`](./prisma/schema.prisma). Five models:
 ## Key design decisions
 
 - **Full-stack Next.js over a separate Python backend** — one process, one deploy,
-  fastest path to a working demo. Node has first-class Anthropic + Voyage clients.
+  fastest path to a working demo. Node has first-class Groq + Voyage clients.
+- **Groq + Voyage for a $0 stack** — Groq's free tier (Llama 3.3 70B, no credit
+  card) handles all reasoning; Voyage's free tier handles embeddings. The LLM
+  seam (`lib/ai/llm.ts`) centralizes the provider, so swapping to Anthropic,
+  OpenAI, or a local model later is a single-file change.
 - **Local cosine vector search over a hosted vector DB** — at the
   hundreds/thousands-of-docs scale this is fast, free, and dependency-light, so
   the demo runs with only two API keys. The interface keeps the upgrade path open.
 - **SQLite over hosted Postgres** — zero-config; `npm run setup` produces a
   working DB instantly. One-line swap to Postgres for production.
-- **Claude structured outputs for extraction** — `output_config.format` with a
-  JSON schema yields clean, validated intelligence instead of brittle parsing.
+- **Structured extraction via JSON mode + Zod** — Groq JSON Object mode plus a
+  Zod-validated retry yields clean, validated intelligence instead of brittle
+  parsing. Auto-upgrades to strict `json_schema` constrained decoding on
+  `openai/gpt-oss-*` models.
 - **AI assists, never decides** — every recommendation uses hedged language
   ("Needs partner review", "Interesting signal", "Needs more diligence").
 

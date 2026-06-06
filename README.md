@@ -40,8 +40,8 @@ making judgments.
 - **Next.js 14 (App Router) + TypeScript** — unified full-stack app (UI + API).
 - **Tailwind CSS + shadcn/ui** — professional, minimal VC SaaS UI (Linear/Notion).
 - **Prisma + SQLite** — zero-config local DB; swap to Postgres for production.
-- **Claude (`@anthropic-ai/sdk`)** — `claude-opus-4-8` for extraction/analysis/
-  briefs; `claude-haiku-4-5` for cheap helpers.
+- **Groq (`groq-sdk`)** — `llama-3.3-70b-versatile` for extraction/analysis/
+  briefs; `llama-3.1-8b-instant` for cheap helpers. Free tier, no credit card.
 - **Voyage AI (`voyage-3.5`)** — vector embeddings for semantic search/RAG.
 - **Local vector store** — cosine similarity over Prisma-stored embeddings,
   behind a `VectorStore` interface (swap for Chroma/Pinecone/pgvector later).
@@ -57,7 +57,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design and RAG pipeline.
 npm install
 
 # 2. Configure keys
-cp .env.example .env        # add ANTHROPIC_API_KEY and VOYAGE_API_KEY
+cp .env.example .env        # add GROQ_API_KEY and VOYAGE_API_KEY (both free)
 
 # 3. Create the DB, seed demo data, and ingest the sample documents
 npm run setup               # = prisma db push && db:seed && ingest:demo

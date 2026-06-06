@@ -9,7 +9,17 @@
  *   2. Ground every claim in the firm's actual memory — never invent deals.
  */
 
-/** JSON schema passed to `output_config.format` for structured extraction. */
+/**
+ * JSON schema for structured extraction. With the default Groq model
+ * (llama-3.3-70b) this shape is described to the model via JSON Object mode and
+ * validated with Zod. With an `openai/gpt-oss-*` model it is passed directly as
+ * a strict `json_schema` response format (constrained decoding). See
+ * `completeJSON` in src/lib/ai/llm.ts.
+ *
+ * Note: strict mode requires every property in `required` and
+ * `additionalProperties: false` on every object — only enable it once the
+ * schema is made fully strict-compliant.
+ */
 export const EXTRACTION_SCHEMA = {
   type: "object",
   additionalProperties: false,
