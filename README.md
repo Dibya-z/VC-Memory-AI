@@ -2,6 +2,9 @@
 
 **An AI second brain for lean venture capital teams.**
 
+> **Live demo:** _add your Vercel URL here after deploying._ The hosted link is
+> pre-loaded with demo data — no files or setup needed to try it.
+
 A lean VC firm evaluates hundreds of startups a year and generates a huge amount
 of valuable knowledge — pitch decks, meeting notes, memos, rejection reasons. But
 it scatters across PDFs, docs, email, and personal notes, and the firm slowly
@@ -41,7 +44,8 @@ making judgments.
 - **Tailwind CSS + a custom design system** — an editorial "confident restraint"
   UI (rtp.vc / Linear / Stripe-inspired): hairlines, square corners, one warm
   accent, generous whitespace.
-- **Prisma + SQLite** — zero-config local DB; swap to Postgres for production.
+- **Prisma + PostgreSQL (Neon)** — serverless Postgres on a free, no-card tier,
+  so the seeded memory persists on a hosted deploy.
 - **Groq (`groq-sdk`)** — `llama-3.3-70b-versatile` for extraction/analysis/
   briefs; `llama-3.1-8b-instant` for cheap helpers. Free tier, no credit card.
 - **Voyage AI (`voyage-3.5`)** — vector embeddings for semantic search/RAG.
@@ -58,10 +62,10 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design and RAG pipeline.
 # 1. Install
 npm install
 
-# 2. Configure keys
-cp .env.example .env        # add GROQ_API_KEY and VOYAGE_API_KEY (both free)
+# 2. Configure environment (see .env.example)
+cp .env.example .env        # add Neon DATABASE_URL + DIRECT_URL, GROQ_API_KEY, VOYAGE_API_KEY
 
-# 3. Create the DB and ingest the demo corpus (runs the real pipeline)
+# 3. Create the tables and ingest the demo corpus (runs the real pipeline)
 npm run setup               # = prisma db push && ingest:demo
 
 # 4. Run
@@ -70,6 +74,9 @@ npm run dev                 # http://localhost:3000
 
 Useful scripts: `npm run db:studio` (browse the DB), `npm run db:push` (apply
 schema), `npm run ingest:demo` (reset + re-ingest the demo corpus).
+
+A free Neon database (no credit card) takes ~2 minutes to set up — see
+[DEPLOY.md](./DEPLOY.md) for the exact connection-string steps.
 
 > **Demo tip:** the free Voyage embeddings tier is ~3 requests/minute, and each
 > chat / analyze / brief makes one embedding call. Run `npm run ingest:demo`
@@ -93,3 +100,13 @@ Fully working end-to-end (verified live), not a scaffold:
 
 Architecture and the RAG pipeline are documented in
 [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+---
+
+## Deployment
+
+Hosted on **Vercel** (app) + **Neon** (Postgres) — both free, no credit card.
+Because chunk embeddings are stored during seeding, the live app computes only a
+single query embedding per action, staying well under the Voyage free-tier limit.
+Full step-by-step (Neon setup → seed → Vercel env vars) is in
+[DEPLOY.md](./DEPLOY.md).
