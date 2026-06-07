@@ -6,9 +6,7 @@
 > no files or setup needed. Try the sample decks in the Deal Analyzer, or ask the
 > Memory Chat about a past deal.
 
-▶ **[Watch the 2-minute walkthrough](ADD_VIDEO_LINK_HERE)**
-
-[![VC Memory AI — the firm's institutional memory, at a glance](docs/dashboard.png)](ADD_VIDEO_LINK_HERE)
+![VC Memory AI — the firm's institutional memory, at a glance](docs/dashboard.png)
 
 A lean VC firm evaluates hundreds of startups a year and generates a huge amount
 of valuable knowledge — pitch decks, meeting notes, memos, rejection reasons. But
