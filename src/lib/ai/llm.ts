@@ -49,21 +49,42 @@ export interface CompleteOptions {
 }
 
 /**
+ * Translate provider errors into clean, user-facing messages. The Groq free tier
+ * enforces a daily token cap; without this a reviewer would see a raw 429 JSON
+ * blob. Rate-limit errors are not retried (retrying won't help).
+ */
+function asFriendlyError(e: unknown): Error {
+  const status = (e as { status?: number } | null)?.status;
+  const msg = e instanceof Error ? e.message : String(e);
+  if (status === 429 || /rate.?limit|tokens per day|\bTPD\b|quota/i.test(msg)) {
+    return new Error(
+      "The demo has hit its free-tier AI limit for now. Please try again in a few minutes."
+    );
+  }
+  return e instanceof Error ? e : new Error(msg);
+}
+
+/**
  * Plain-text completion — used for chat answers and brief prose.
  */
 export async function complete(
   userContent: string,
   opts: CompleteOptions = {}
 ): Promise<string> {
-  const res = await llm().chat.completions.create({
-    model: opts.model ?? MODELS.reasoning,
-    max_tokens: opts.maxTokens ?? 4000,
-    temperature: opts.temperature ?? 0.4,
-    messages: [
-      ...(opts.system ? [{ role: "system" as const, content: opts.system }] : []),
-      { role: "user" as const, content: userContent },
-    ],
-  });
+  let res;
+  try {
+    res = await llm().chat.completions.create({
+      model: opts.model ?? MODELS.reasoning,
+      max_tokens: opts.maxTokens ?? 4000,
+      temperature: opts.temperature ?? 0.4,
+      messages: [
+        ...(opts.system ? [{ role: "system" as const, content: opts.system }] : []),
+        { role: "user" as const, content: userContent },
+      ],
+    });
+  } catch (e) {
+    throw asFriendlyError(e);
+  }
   return res.choices[0]?.message?.content ?? "";
 }
 
@@ -113,13 +134,19 @@ export async function completeJSON<T>(
 
   let lastErr: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const res = await llm().chat.completions.create({
-      model,
-      max_tokens: opts.maxTokens ?? 4000,
-      temperature: opts.temperature ?? 0.2,
-      response_format: responseFormat,
-      messages,
-    });
+    let res;
+    try {
+      res = await llm().chat.completions.create({
+        model,
+        max_tokens: opts.maxTokens ?? 4000,
+        temperature: opts.temperature ?? 0.2,
+        response_format: responseFormat,
+        messages,
+      });
+    } catch (e) {
+      // Don't retry provider errors (e.g. 429 rate limit) as JSON-shape retries.
+      throw asFriendlyError(e);
+    }
     const raw = res.choices[0]?.message?.content ?? "";
     try {
       return schema.parse(JSON.parse(raw));
