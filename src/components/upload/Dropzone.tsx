@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UPLOAD } from "@/config/constants";
+import { SAMPLE_DECKS } from "@/config/sample-decks";
 import { Chip, DecisionBadge } from "@/components/ui/badges";
 import { BulletList } from "@/components/ui/BulletList";
 import type { ExtractedIntelligence, UploadResult } from "@/lib/types";
@@ -85,6 +86,16 @@ export function Dropzone() {
     [upload]
   );
 
+  const uploadSample = useCallback(
+    (deck: (typeof SAMPLE_DECKS)[number]) => {
+      const file = new File([deck.text], deck.filename, {
+        type: "text/markdown",
+      });
+      void upload(file);
+    },
+    [upload]
+  );
+
   return (
     <div className="space-y-4">
       <div
@@ -131,6 +142,24 @@ export function Dropzone() {
             e.target.value = "";
           }}
         />
+      </div>
+
+      {/* No document handy? Ingest a built-in sample (fictional new company). */}
+      <div className="space-y-2.5">
+        <p className="label-eyebrow">No file handy? Try a sample document</p>
+        <div className="flex flex-wrap gap-2">
+          {SAMPLE_DECKS.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              onClick={() => uploadSample(d)}
+              className="flex flex-col items-start gap-0.5 border border-border px-3 py-2 text-left transition-colors hover:border-accent hover:bg-secondary"
+            >
+              <span className="text-[14px] font-medium">{d.label}</span>
+              <span className="text-[12px] text-muted-foreground">{d.sector}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {items.length > 0 && (

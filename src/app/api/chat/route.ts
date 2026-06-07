@@ -9,6 +9,8 @@ import { answerFromMemory } from "@/lib/ai/chat";
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Allow time for embed + LLM completion on serverless (Vercel default is 10s).
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   let body: unknown;

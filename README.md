@@ -38,7 +38,9 @@ making judgments.
 ## Tech stack
 
 - **Next.js 14 (App Router) + TypeScript** — unified full-stack app (UI + API).
-- **Tailwind CSS + shadcn/ui** — professional, minimal VC SaaS UI (Linear/Notion).
+- **Tailwind CSS + a custom design system** — an editorial "confident restraint"
+  UI (rtp.vc / Linear / Stripe-inspired): hairlines, square corners, one warm
+  accent, generous whitespace.
 - **Prisma + SQLite** — zero-config local DB; swap to Postgres for production.
 - **Groq (`groq-sdk`)** — `llama-3.3-70b-versatile` for extraction/analysis/
   briefs; `llama-3.1-8b-instant` for cheap helpers. Free tier, no credit card.
@@ -59,20 +61,35 @@ npm install
 # 2. Configure keys
 cp .env.example .env        # add GROQ_API_KEY and VOYAGE_API_KEY (both free)
 
-# 3. Create the DB, seed demo data, and ingest the sample documents
-npm run setup               # = prisma db push && db:seed && ingest:demo
+# 3. Create the DB and ingest the demo corpus (runs the real pipeline)
+npm run setup               # = prisma db push && ingest:demo
 
 # 4. Run
 npm run dev                 # http://localhost:3000
 ```
 
 Useful scripts: `npm run db:studio` (browse the DB), `npm run db:push` (apply
-schema), `npm run ingest:demo` (re-ingest the demo corpus).
+schema), `npm run ingest:demo` (reset + re-ingest the demo corpus).
+
+> **Demo tip:** the free Voyage embeddings tier is ~3 requests/minute, and each
+> chat / analyze / brief makes one embedding call. Run `npm run ingest:demo`
+> beforehand and pace live actions a few seconds apart so you never wait on a
+> rate-limit backoff mid-demo. (Adding a Voyage card stays free and lifts the
+> limit, if you prefer headroom.)
 
 ---
 
-## Status
+## Status — all features implemented ✅
 
-Scaffold stage — architecture and file structure are in place; feature logic is
-stubbed with `TODO(impl)` markers at each seam. Build order is documented in
-[ARCHITECTURE.md](./ARCHITECTURE.md#build-plan).
+Fully working end-to-end (verified live), not a scaffold:
+
+1. ✅ **Document upload + ingestion** — PDF / txt / md → text extraction →
+   structured intelligence → chunk → embed → stored as memory.
+2. ✅ **VC Memory chat (RAG)** — grounded, cited answers over the firm's history.
+3. ✅ **New deal analysis** — compares an incoming deck to past deals and shows
+   what the firm concluded then (decision + reasoning + % match).
+4. ✅ **Investment brief generation** — partner-ready memo with hedged
+   recommendation language (the AI never makes the final call).
+
+Architecture and the RAG pipeline are documented in
+[ARCHITECTURE.md](./ARCHITECTURE.md).

@@ -10,13 +10,16 @@
 //
 // Plus Conversation/Message for the memory chatbot.
 //
-// Provider is SQLite for zero-config local dev. Swap `provider`/`url` for
-// PostgreSQL in production — no model changes required.
+// Provider is PostgreSQL (Neon free tier) so the database persists on a
+// serverless host like Vercel. `url` is the POOLED connection (used at runtime);
+// `directUrl` is the DIRECT connection (used by `prisma db push` / migrations).
+// Neon's dashboard gives you both strings.
 // ───────────────────────────────────────────────────────────────────────────
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {

@@ -14,6 +14,8 @@ import type { UploadResult } from "@/lib/types";
 
 // pdf-parse + Prisma need the Node runtime (not edge).
 export const runtime = "nodejs";
+// Ingestion does extract + LLM + multiple embeddings (Vercel default is 10s).
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   let form: FormData;

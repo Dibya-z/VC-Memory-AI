@@ -9,6 +9,7 @@ import { useRef, useState } from "react";
 import { UploadCloud, Loader2, ArrowRight, FileText, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UPLOAD } from "@/config/constants";
+import { SAMPLE_DECKS } from "@/config/sample-decks";
 import { AnalysisReport } from "@/components/analyzer/AnalysisReport";
 import type { DealAnalysis } from "@/lib/types";
 
@@ -22,27 +23,34 @@ export function DealAnalyzer() {
   const [analyzedName, setAnalyzedName] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  async function analyze() {
+  async function analyze(sample?: { text: string; label: string }) {
     setError(null);
-    if (!file && text.trim().length < 30) {
+    const pasted = (sample?.text ?? text).trim();
+    if (!file && !sample && pasted.length < 30) {
       setError("Upload a deck or paste at least a few sentences.");
       return;
     }
     setLoading(true);
     try {
       const fd = new FormData();
-      if (file) fd.append("file", file);
-      else fd.append("text", text.trim());
+      if (file && !sample) fd.append("file", file);
+      else fd.append("text", pasted);
       const res = await fetch("/api/analyze", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Analysis failed.");
       setAnalysis(data.analysis);
-      setAnalyzedName(data.filename ?? "Pasted deck");
+      setAnalyzedName(sample ? sample.label : data.filename ?? "Pasted deck");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Analysis failed.");
     } finally {
       setLoading(false);
     }
+  }
+
+  function runSample(deck: (typeof SAMPLE_DECKS)[number]) {
+    setFile(null);
+    setText(deck.text);
+    void analyze({ text: deck.text, label: `${deck.label} (sample deck)` });
   }
 
   function reset() {
@@ -156,11 +164,30 @@ export function DealAnalyzer() {
         className="w-full resize-y border border-input bg-background p-3 text-[15px] leading-relaxed transition-colors focus:border-foreground focus:outline-none"
       />
 
+      {/* No file handy? One-click sample decks (fictional new companies). */}
+      <div className="space-y-2.5">
+        <p className="label-eyebrow">No deck handy? Analyze a sample</p>
+        <div className="flex flex-wrap gap-2">
+          {SAMPLE_DECKS.map((d) => (
+            <button
+              key={d.id}
+              type="button"
+              disabled={loading}
+              onClick={() => runSample(d)}
+              className="flex flex-col items-start gap-0.5 border border-border px-3 py-2 text-left transition-colors hover:border-accent hover:bg-secondary disabled:opacity-50"
+            >
+              <span className="text-[14px] font-medium">{d.label}</span>
+              <span className="text-[12px] text-muted-foreground">{d.sector}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {error && <p className="text-[14px] text-danger">{error}</p>}
 
       <button
         type="button"
-        onClick={analyze}
+        onClick={() => analyze()}
         disabled={loading}
         className="group inline-flex h-12 items-center gap-2 bg-primary px-8 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
       >

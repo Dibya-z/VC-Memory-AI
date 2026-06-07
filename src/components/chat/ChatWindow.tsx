@@ -19,7 +19,7 @@ interface Msg {
 
 const SUGGESTIONS = [
   "Which startups did we pass on, and why?",
-  "What were our concerns about FlowAI?",
+  "Prep me for a meeting with FlowAI.",
   "Have we seen any AI coding assistants before?",
   "Summarize what we know in Developer Tools.",
 ];

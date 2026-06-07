@@ -11,6 +11,8 @@ import { analyzeNewDeal } from "@/lib/ai/analyze";
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Allow time for embed + memory search + LLM analysis (Vercel default is 10s).
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   let form: FormData;

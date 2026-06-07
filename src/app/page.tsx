@@ -29,9 +29,28 @@ export default async function DashboardPage() {
             at a glance.
           </h1>
           <p className="mt-8 max-w-[520px] text-[18px] leading-relaxed text-muted-foreground">
-            Every decision, concern, and conversation the team has had — kept,
-            structured, and searchable.
+            Every deck, memo, and conversation the team has had — kept as
+            structured, searchable memory. Ask it what you concluded, what you
+            passed on, and why.
           </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/chat"
+              className="group inline-flex h-11 items-center gap-2 bg-primary px-6 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Ask the firm&apos;s memory
+              <ArrowRight
+                className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                strokeWidth={1.5}
+              />
+            </Link>
+            <Link
+              href="/analyzer"
+              className="inline-flex h-11 items-center gap-2 border border-border px-6 text-[14px] font-medium transition-colors hover:border-foreground/40 hover:bg-secondary"
+            >
+              Analyze a new deal
+            </Link>
+          </div>
         </div>
         <div className="hidden items-center justify-end lg:flex">
           <MemoryGraphic />

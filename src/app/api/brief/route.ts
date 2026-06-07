@@ -10,6 +10,8 @@ import { generateBrief } from "@/lib/ai/brief";
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Allow time for embed + memory search + LLM brief writing (Vercel default 10s).
+export const maxDuration = 60;
 
 const briefRequestSchema = z.object({ companyId: z.string().min(1) });
 
