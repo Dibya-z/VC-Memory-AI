@@ -14,7 +14,7 @@ export function PageHeader({
   return (
     <header className="max-w-[760px]">
       <p className="label-eyebrow">{eyebrow}</p>
-      <h1 className="mt-5 font-serif text-5xl font-normal leading-[1.05] tracking-tight">
+      <h1 className="mt-5 font-serif text-3xl font-normal leading-[1.05] tracking-tight sm:text-4xl lg:text-5xl">
         {title}
       </h1>
       {description && (

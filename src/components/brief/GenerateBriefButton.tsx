@@ -115,7 +115,7 @@ function BriefOverlay({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sheet header */}
-        <div className="mb-10 flex items-start justify-between gap-6 border-b border-border pb-6">
+        <div className="mb-10 flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
           <div className="space-y-1.5">
             <p className="label-eyebrow">Investment brief</p>
             <h1 className="font-serif text-3xl font-normal tracking-tight">

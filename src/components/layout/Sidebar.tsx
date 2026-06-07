@@ -8,6 +8,7 @@ import {
   Building2,
   MessageSquare,
   Sparkles,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,11 +20,51 @@ const NAV = [
   { href: "/analyzer", label: "Deal Analyzer", icon: Sparkles },
 ];
 
-export function Sidebar() {
+export function Sidebar({
+  open = false,
+  onClose,
+}: {
+  open?: boolean;
+  onClose?: () => void;
+}) {
+  return (
+    <>
+      {/* Desktop: persistent sidebar (unchanged on lg+) */}
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-background px-6 py-7 lg:flex">
+        <SidebarNav />
+      </aside>
+
+      {/* Mobile / tablet: slide-in drawer */}
+      {open && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
+            onClick={onClose}
+            aria-hidden="true"
+          />
+          <aside className="absolute left-0 top-0 flex h-full w-64 max-w-[80vw] flex-col border-r border-border bg-background px-6 py-7">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close menu"
+              className="absolute right-4 top-4 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <X className="h-5 w-5" strokeWidth={1.5} />
+            </button>
+            <SidebarNav onNavigate={onClose} />
+          </aside>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** Shared nav body, rendered in both the desktop sidebar and the mobile drawer. */
+function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-background px-6 py-7">
-      <Link href="/" className="mb-12 block">
+    <>
+      <Link href="/" className="mb-12 block" onClick={onNavigate}>
         <span className="font-serif text-lg tracking-tight text-foreground">
           VC Memory
         </span>
@@ -38,6 +79,7 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={onNavigate}
               className={cn(
                 "group relative flex items-center gap-3 py-2.5 pl-3 text-sm transition-colors duration-200",
                 active
@@ -62,6 +104,6 @@ export function Sidebar() {
       </nav>
 
       <p className="label-eyebrow mt-auto px-3">Institutional memory</p>
-    </aside>
+    </>
   );
 }

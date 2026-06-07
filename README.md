@@ -103,9 +103,7 @@ A free Neon database (no credit card) takes ~2 minutes to set up — see
 All four features above are **implemented and verified working end-to-end** (on
 the live demo and locally) — this is a complete prototype, not a scaffold.
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — system design and the RAG pipeline.
-- [NOTES.md](./NOTES.md) — case-study write-up: tool/model choices, what didn't
-  work, and what I'd extend with more time.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the system design and RAG pipeline.
 
 ---
 

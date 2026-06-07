@@ -28,6 +28,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# submission artifacts (kept local, emailed — not part of the repo)
+/submission-note.html
+/VC-Memory-AI-Case-Study-Note.pdf
+
 # typescript
 *.tsbuildinfo
 

@@ -23,7 +23,7 @@ export default async function DashboardPage() {
       <header className="grid items-stretch gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)]">
         <div className="flex max-w-[620px] flex-col justify-center">
           <p className="label-eyebrow">Institutional Memory · Overview</p>
-          <h1 className="mt-6 font-serif text-6xl font-normal leading-[1.05] tracking-tight">
+          <h1 className="mt-6 font-serif text-4xl font-normal leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
             The firm&apos;s memory,
             <br />
             at a glance.
