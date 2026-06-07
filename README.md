@@ -2,8 +2,13 @@
 
 **An AI second brain for lean venture capital teams.**
 
-> **Live demo:** _add your Vercel URL here after deploying._ The hosted link is
-> pre-loaded with demo data — no files or setup needed to try it.
+> **Live demo:** **https://vc-memory-ai.vercel.app** — pre-loaded with demo data,
+> no files or setup needed. Try the sample decks in the Deal Analyzer, or ask the
+> Memory Chat about a past deal.
+
+▶ **[Watch the 2-minute walkthrough](ADD_VIDEO_LINK_HERE)**
+
+[![VC Memory AI — the firm's institutional memory, at a glance](docs/dashboard.png)](ADD_VIDEO_LINK_HERE)
 
 A lean VC firm evaluates hundreds of startups a year and generates a huge amount
 of valuable knowledge — pitch decks, meeting notes, memos, rejection reasons. But
@@ -36,6 +41,13 @@ making judgments.
 4. **Investment brief generation** — a clean, partner-ready memo with hedged
    recommendation language (the AI never makes the final call).
 
+> **The differentiator:** a new deck isn't just summarized — it's matched against
+> the firm's past decisions. Below, a new AI coding tool surfaces _CodeFlow AI_,
+> which the firm **passed** on, with the original reasoning attached — so the team
+> instantly knows what to dig into.
+>
+> ![Deal Analyzer surfacing a comparable past deal with the firm's prior decision and reasoning](docs/analyzer.png)
+
 ---
 
 ## Tech stack
@@ -46,8 +58,10 @@ making judgments.
   accent, generous whitespace.
 - **Prisma + PostgreSQL (Neon)** — serverless Postgres on a free, no-card tier,
   so the seeded memory persists on a hosted deploy.
-- **Groq (`groq-sdk`)** — `llama-3.3-70b-versatile` for extraction/analysis/
-  briefs; `llama-3.1-8b-instant` for cheap helpers. Free tier, no credit card.
+- **Groq (`groq-sdk`)** — `llama-3.3-70b-versatile` powers all AI (extraction,
+  chat, analysis, briefs), chosen for strong reasoning on a free tier with no
+  credit card. The model sits behind a thin client, so switching to Claude/GPT is
+  a one-line change.
 - **Voyage AI (`voyage-3.5`)** — vector embeddings for semantic search/RAG.
 - **Local vector store** — cosine similarity over Prisma-stored embeddings,
   behind a `VectorStore` interface (swap for Chroma/Pinecone/pgvector later).
@@ -86,20 +100,14 @@ A free Neon database (no credit card) takes ~2 minutes to set up — see
 
 ---
 
-## Status — all features implemented ✅
+## Status
 
-Fully working end-to-end (verified live), not a scaffold:
+All four features above are **implemented and verified working end-to-end** (on
+the live demo and locally) — this is a complete prototype, not a scaffold.
 
-1. ✅ **Document upload + ingestion** — PDF / txt / md → text extraction →
-   structured intelligence → chunk → embed → stored as memory.
-2. ✅ **VC Memory chat (RAG)** — grounded, cited answers over the firm's history.
-3. ✅ **New deal analysis** — compares an incoming deck to past deals and shows
-   what the firm concluded then (decision + reasoning + % match).
-4. ✅ **Investment brief generation** — partner-ready memo with hedged
-   recommendation language (the AI never makes the final call).
-
-Architecture and the RAG pipeline are documented in
-[ARCHITECTURE.md](./ARCHITECTURE.md).
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — system design and the RAG pipeline.
+- [NOTES.md](./NOTES.md) — case-study write-up: tool/model choices, what didn't
+  work, and what I'd extend with more time.
 
 ---
 
