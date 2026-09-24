@@ -113,7 +113,7 @@ export async function completeJSON<T>(
   opts: CompleteJSONOptions = {}
 ): Promise<T> {
   const model = opts.model ?? MODELS.reasoning;
-  const strictCapable = model.startsWith("openai/gpt-oss");
+  const strictCapable = false; // model.startsWith("openai/gpt-oss");
 
   const responseFormat =
     strictCapable && opts.jsonSchema
