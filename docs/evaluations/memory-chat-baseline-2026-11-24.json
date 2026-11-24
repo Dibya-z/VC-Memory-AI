@@ -1,0 +1,903 @@
+{
+  "schemaVersion": 1,
+  "title": "Memory Chat: observed baseline and diagnostic controls",
+  "createdAt": "2026-11-24T15:36:57.171986+00:00",
+  "dateForSubmission": "2026-11-24",
+  "scope": {
+    "endpoint": "http://localhost:3000/api/chat",
+    "baselineRequests": 13,
+    "additionalLocalEndpointControls": 1,
+    "additionalFullSourceModelControls": 1,
+    "requestContract": "Only {message}, matching current ChatWindow including follow-up turns.",
+    "applicationCodeChanged": false,
+    "databaseMutationsPerformed": false,
+    "reviewMethod": "Assistant source-based qualitative review against actual DB/source snapshot; not independent human scoring."
+  },
+  "configuration": {
+    "reasoningProvider": "Groq",
+    "reasoningModelFromLocalEnvironment": "openai/gpt-oss-120b",
+    "embeddingModel": "voyage-3.5",
+    "modelTelemetryCaveat": "Current local API does not report actual provider/model/finish_reason; full-source control explicitly used the configured model."
+  },
+  "corpus": {
+    "companyCount": 5,
+    "documentCount": 5,
+    "chunkCount": 14,
+    "companies": [
+      {
+        "name": "CloudBrain AI",
+        "decision": null
+      },
+      {
+        "name": "CodeFlow AI",
+        "decision": "Passed"
+      },
+      {
+        "name": "FlowAI",
+        "decision": "Tracking"
+      },
+      {
+        "name": "LedgerLite",
+        "decision": "Invested"
+      },
+      {
+        "name": "VaultGuard",
+        "decision": null
+      }
+    ],
+    "publicSourceVerification": {
+      "allDocumentsExactlyMatchPublicFictionalFixtures": true,
+      "allIndexedChunksAreSourceSubstrings": true,
+      "sources": [
+        {
+          "filename": "ledgerlite-memo.md",
+          "sha256": "9082fd761fec2e4c8a3ad811a81a4b26d670d569902aff736dad1e9ea918b0ad",
+          "publicUrl": "https://raw.githubusercontent.com/Dibya-z/VC-Memory-AI/main/data/demo/ledgerlite-memo.md"
+        },
+        {
+          "filename": "cloudbrain-ai-deck.md",
+          "sha256": "73660b004907d8fc812292f7eef509a76b2d785b4a52e1a7524176f27ff789a6",
+          "publicUrl": "https://raw.githubusercontent.com/Dibya-z/VC-Memory-AI/main/data/demo/cloudbrain-ai-deck.md"
+        },
+        {
+          "filename": "codeflow-ai-memo.md",
+          "sha256": "84033aea6f61ca92dbfcd335b966e568b76449ef239896558e73f1610541983c",
+          "publicUrl": "https://raw.githubusercontent.com/Dibya-z/VC-Memory-AI/main/data/demo/codeflow-ai-memo.md"
+        },
+        {
+          "filename": "flowai-notes.txt",
+          "sha256": "8930e71f8e6c1024459808c229429f0709ecb40badad1bac232e1f57e1f4e736",
+          "publicUrl": "https://raw.githubusercontent.com/Dibya-z/VC-Memory-AI/main/data/demo/flowai-notes.txt"
+        },
+        {
+          "filename": "vaultguard-deck.md",
+          "sha256": "62a3ea50ab8d257f03ce72669f4060c9069e4dae5526e6cb0b80629c6c09eafe",
+          "publicUrl": "https://raw.githubusercontent.com/Dibya-z/VC-Memory-AI/main/data/demo/vaultguard-deck.md"
+        }
+      ]
+    },
+    "goldWarning": "README labels CloudBrainAI/VaultGuard with decisions not present in their decks. Grade source documents and actual DB, not that README."
+  },
+  "baselineResults": [
+    {
+      "id": "decision_reason",
+      "category": "Single-company decision and false cause",
+      "question": "Why did we pass on CodeFlow AI? Was the problem its founding team?",
+      "expected": [
+        "CodeFlow AI: Passed.",
+        "Strong technical founders; team quality was a strength.",
+        "Weak team adoption/retention, distribution disadvantage, thin moat."
+      ],
+      "requestBody": {
+        "message": "Why did we pass on CodeFlow AI? Was the problem its founding team?"
+      },
+      "startedAt": "2026-11-24T15:26:34.330Z",
+      "httpStatus": 200,
+      "elapsedMs": 9603,
+      "response": {
+        "answer": "**Why we passed on CodeFlow AI**\n\n- **Founders were not the problem** – Both Daniel Osei (CEO) and Lena Hoffmann (CTO) were described as “excellent” with deep technical expertise and strong domain insight. The memo repeatedly calls the founding team “strong” and “coach‑able.”\n\n- **Core concerns that drove the PASS decision**\n  1. **Shallow, individual‑only traction**  \n     - 6 k sign‑ups and ~900 weekly active users, but all are hobbyist/individual developers.  \n     - Only $11 k MRR from a $15/mo Pro tier, with **~12 % monthly logo churn** – signals the product is a “nice‑to‑have” rather than a daily, team‑level habit.\n  2. **No team/enterprise adoption** – No logos or contracts beyond individual users, and no clear wedge into the budget‑holding teams where a sustainable revenue model lives.\n  3. **Distribution disadvantage** – Competing head‑on with entrenched players (GitHub Copilot, Cursor, Codeium, Cody) that own the IDE surface and move quickly.\n  4. **Thin moat** – The repo‑aware agentic refactor, while differentiated today, is being rapidly copied by better‑funded competitors; there is no defensible IP or network effect yet.\n  5. **Unclear path to higher‑value pricing** – Without team adoption, scaling revenue and improving net‑revenue retention is uncertain.\n\n**Bottom line:** The pass was driven by market‑level risks (distribution, competition, lack of team adoption, high churn) rather than any deficiency in the founding team. The team remains a talent we’d consider backing in a future venture, but at seed stage the product‑market fit and defensibility were insufficient.",
+        "citations": [
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "# Investment Memo — CodeFlow AI **Date:** September 2025 **Sector:** Developer Tools **Stage:** Seed ($3M round) **Author:** Investment team **Recommendation: P…"
+          },
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "FlowAI — Founder meeting notes Met: October 2025 Sector: SaaS (AI workflow automation) Stage: Seed Status: TRACKING (not investing now, stay close) Who we met:…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "y contributor to a popular serving framework. - 4 engineers, all ex-infra. ## The ask Raising $4M seed to convert design partners to paid, build the enterprise…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "mostly_correct",
+        "coverage": "adequate",
+        "evidence": "unrelated_sources_and_unsupported_additions",
+        "taskFit": "overlong",
+        "notes": [
+          "Correct Passed decision and strong founders.",
+          "Unrecorded claim: no defensible IP or network effect yet.",
+          "Unrelated FlowAI/CloudBrain sources."
+        ]
+      }
+    },
+    {
+      "id": "exact_metrics",
+      "category": "Precise factual recall",
+      "question": "What ARR, net revenue retention, and number of platform customers were recorded for LedgerLite?",
+      "expected": [
+        "$1.8M ARR.",
+        "134% net revenue retention.",
+        "22 platform customers."
+      ],
+      "requestBody": {
+        "message": "What ARR, net revenue retention, and number of platform customers were recorded for LedgerLite?"
+      },
+      "startedAt": "2026-11-24T15:27:05.935Z",
+      "httpStatus": 200,
+      "elapsedMs": 7340,
+      "response": {
+        "answer": "- **ARR:** $1.8 million  \n- **Net revenue retention:** 134 %  \n- **Platform customers:** 22 customers (including two that each contribute > $200 k ARR)  \n\nThese figures come from the traction data recorded for LedgerLite.",
+        "citations": [
+          {
+            "companyId": "cmwudpvfz00017ga4mpuui8fa",
+            "companyName": "LedgerLite",
+            "snippet": ", auditable double-entry ledger is genuinely hard and off-mission. LedgerLite provides it as an API with a white-label UI. Their ledger is provably correct and…"
+          },
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "ng, useful job-to-be-done. Traction: - ~$9k MRR, mostly $29-49/mo prosumer plans. - 1,300 signups, ~250 activated (built at least one live automation). - Growth…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "sks. - GPU supply is loosening; enterprises are signing multi-year compute commitments and want to maximize utilization. - Regulatory pressure (EU AI Act, secto…"
+          },
+          {
+            "companyId": "cmwudrgt0000k7ga4znntuqz1",
+            "companyName": "VaultGuard",
+            "snippet": "last year started with a leaked machine token. - The number of non-human identities is exploding with microservices and AI agents. - Compliance frameworks are s…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "correct",
+        "coverage": "complete",
+        "evidence": "poor_citation_precision",
+        "taskFit": "appropriate",
+        "notes": [
+          "Correct $1.8M ARR,134% NRR,22 customers.",
+          "Three unrelated company citations; displayed LedgerLite snippet does not contain requested figures."
+        ]
+      }
+    },
+    {
+      "id": "complete_inventory",
+      "category": "Exhaustive inventory and current decisions",
+      "question": "List every company currently in our memory and its recorded investment decision, then give the total company count. Say \"not recorded\" where no decision is recorded; do not infer a decision from a pitch deck.",
+      "expected": [
+        "Exactly five companies, no omissions or additions.",
+        "CloudBrain AI: not recorded.",
+        "CodeFlow AI: Passed.",
+        "FlowAI: Tracking.",
+        "LedgerLite: Invested.",
+        "VaultGuard: not recorded."
+      ],
+      "requestBody": {
+        "message": "List every company currently in our memory and its recorded investment decision, then give the total company count. Say \"not recorded\" where no decision is recorded; do not infer a decision from a pitch deck."
+      },
+      "startedAt": "2026-11-24T15:27:35.278Z",
+      "httpStatus": 200,
+      "elapsedMs": 7555,
+      "response": {
+        "answer": "- **CloudBrain AI** – not recorded (no investment memo or decision in the retrieved material)  \n- **CodeFlow AI** – **PASS** (seed‑stage pass memo, September 2025)  \n- **LedgerLite** – **INVEST** (Series A memo, July 2025)  \n\n**Total companies in memory:** 3.",
+        "citations": [
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "y contributor to a popular serving framework. - 4 engineers, all ex-infra. ## The ask Raising $4M seed to convert design partners to paid, build the enterprise…"
+          },
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "# Investment Memo — CodeFlow AI **Date:** September 2025 **Sector:** Developer Tools **Stage:** Seed ($3M round) **Author:** Investment team **Recommendation: P…"
+          },
+          {
+            "companyId": "cmwudpvfz00017ga4mpuui8fa",
+            "companyName": "LedgerLite",
+            "snippet": "# Investment Memo — LedgerLite **Date:** July 2025 **Sector:** Fintech **Stage:** Series A ($12M round) **Author:** Investment team **Recommendation: INVEST ($3…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "incorrect",
+        "coverage": "incomplete",
+        "evidence": "retrieved_subset_not_entire_corpus",
+        "taskFit": "failed_exhaustive_request",
+        "notes": [
+          "Reports3 companies but current database has5.",
+          "Omits FlowAI and VaultGuard."
+        ]
+      }
+    },
+    {
+      "id": "missing_facts",
+      "category": "Insufficient evidence",
+      "question": "What are FlowAI's cash runway and monthly burn rate? Please use only recorded information.",
+      "expected": [
+        "Neither runway nor monthly burn is recorded.",
+        "No invented number or estimate from MRR."
+      ],
+      "requestBody": {
+        "message": "What are FlowAI's cash runway and monthly burn rate? Please use only recorded information."
+      },
+      "startedAt": "2026-11-24T15:28:04.839Z",
+      "httpStatus": 200,
+      "elapsedMs": 9498,
+      "response": {
+        "answer": "The retrieved notes on FlowAI do not include any figures for its cash runway or its monthly burn rate. Since that information isn’t in the memory we have, we can’t provide an answer without additional data.",
+        "citations": [
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "FlowAI — Founder meeting notes Met: October 2025 Sector: SaaS (AI workflow automation) Stage: Seed Status: TRACKING (not investing now, stay close) Who we met:…"
+          },
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "de. CodeFlow indexes the whole repo and offers repo-aware completions and an agent that can carry out refactors. The demo is genuinely impressive — it correctly…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "y contributor to a popular serving framework. - 4 engineers, all ex-infra. ## The ask Raising $4M seed to convert design partners to paid, build the enterprise…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "correct_abstention",
+        "coverage": "complete",
+        "evidence": "unrelated_sources",
+        "taskFit": "appropriate",
+        "notes": [
+          "Correctly refuses to invent runway/burn.",
+          "Attaches unrelated CodeFlow/CloudBrain sources."
+        ]
+      }
+    },
+    {
+      "id": "unknown_company",
+      "category": "Absent company",
+      "question": "What was our decision on Orchid Robotics, and who founded it?",
+      "expected": [
+        "No Orchid Robotics record exists in this corpus.",
+        "No invented company decision or founders."
+      ],
+      "requestBody": {
+        "message": "What was our decision on Orchid Robotics, and who founded it?"
+      },
+      "startedAt": "2026-11-24T15:28:48.665Z",
+      "httpStatus": 200,
+      "elapsedMs": 7912,
+      "response": {
+        "answer": "The provided memory does not contain any information about Orchid Robotics—there’s no entry describing its business, founders, or any decision we made regarding it. Consequently, I can’t tell you what decision was taken or who founded the company based on the current records.",
+        "citations": [
+          {
+            "companyId": "cmwudpvfz00017ga4mpuui8fa",
+            "companyName": "LedgerLite",
+            "snippet": "- Strong, efficient growth with excellent retention (134% NRR). - Real moat: correctness + auditability + switching costs once a platform embeds the ledger. - H…"
+          },
+          {
+            "companyId": "cmwudrgt0000k7ga4znntuqz1",
+            "companyName": "VaultGuard",
+            "snippet": "last year started with a leaked machine token. - The number of non-human identities is exploding with microservices and AI agents. - Compliance frameworks are s…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "y contributor to a popular serving framework. - 4 engineers, all ex-infra. ## The ask Raising $4M seed to convert design partners to paid, build the enterprise…"
+          },
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "ps. ## Strengths - Excellent founding team with real technical depth. - Product demo quality is high; the agentic refactor is differentiated today. - Bottoms-up…"
+          },
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "ng, useful job-to-be-done. Traction: - ~$9k MRR, mostly $29-49/mo prosumer plans. - 1,300 signups, ~250 activated (built at least one live automation). - Growth…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "correct_abstention",
+        "coverage": "complete",
+        "evidence": "all_five_sources_unrelated",
+        "taskFit": "appropriate_text",
+        "notes": [
+          "Correctly says Orchid Robotics is absent.",
+          "Attaches all5 unrelated company sources."
+        ]
+      }
+    },
+    {
+      "id": "false_premise",
+      "category": "Correction of false premises",
+      "question": "Since we invested in CodeFlow AI, what convinced us to overlook its weak founders?",
+      "expected": [
+        "Correct that CodeFlow AI was Passed, not Invested.",
+        "Correct that its technical founders were praised, not weak.",
+        "Explain adoption/distribution/moat concerns."
+      ],
+      "requestBody": {
+        "message": "Since we invested in CodeFlow AI, what convinced us to overlook its weak founders?"
+      },
+      "startedAt": "2026-11-24T15:29:18.581Z",
+      "httpStatus": 200,
+      "elapsedMs": 8399,
+      "response": {
+        "answer": "**What we know from the firm’s records**\n\n- **CodeFlow AI** was evaluated in September 2025 (seed round, $3 M).  \n- The memo’s **recommendation was “PASS.”**  \n- The team was described as *“excellent”* with strong technical depth (CEO Daniel Osei, former senior engineer; CTO Lena Hoffmann, ex‑ML engineer).  \n- The primary concerns that drove the pass decision were **product‑adoption and market‑position risks**, not founder quality:\n  - Usage was limited to individual hobbyists; paid‑tier churn was ~12 % monthly, indicating the product was a “nice‑to‑have” rather than a daily‑driver.  \n  - No clear wedge into teams/enterprises where the budget resides.  \n  - Heavy distribution disadvantage versus incumbents (GitHub Copilot, Cursor, etc.) and a thin moat that could be copied quickly.  \n\n**Why the “weak founders” premise doesn’t apply**\n\n- The memo never labeled the founders as weak; on the contrary, it praised their technical expertise and coachability.  \n- The decision to pass was based on **market and adoption risks**, not on any perceived founder weakness.  \n\n**What we concluded last time (and why it matters now)**\n\n- **Conclusion:** Pass – the product showed impressive demo quality but lacked defensible, team‑level traction and faced fierce competition.  \n- **Why it matters:** Any future reconsideration would need clear evidence of team‑adoption (e.g., enterprise pilots, low churn) or a defensible distribution channel, not just founder credentials.  \n\n**What’s still unknown / unchanged**\n\n- No enterprise contracts or team‑level pilots have been reported since the memo.  \n- Churn and shallow usage remain open questions; no new data on retention or revenue growth is in the memory.  \n\n**Sharp questions to ask in a follow‑up meeting (if revisiting)**\n\n1. **Team adoption:** Have you secured any pilot or paid contracts with engineering teams or enterprises? What is the churn rate among those accounts?  \n2. **Moat development:** What technical or product differentiators are you building to protect the repo‑aware agent from being replicated by larger competitors?  \n3. **Distribution strategy:** Are you pursuing any partnership or integration (e.g., with IDE vendors, cloud platforms) that could give you a distribution advantage over GitHub/Microsoft‑backed tools?",
+        "citations": [
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "# Investment Memo — CodeFlow AI **Date:** September 2025 **Sector:** Developer Tools **Stage:** Seed ($3M round) **Author:** Investment team **Recommendation: P…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "y contributor to a popular serving framework. - 4 engineers, all ex-infra. ## The ask Raising $4M seed to convert design partners to paid, build the enterprise…"
+          },
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "FlowAI — Founder meeting notes Met: October 2025 Sector: SaaS (AI workflow automation) Stage: Seed Status: TRACKING (not investing now, stay close) Who we met:…"
+          },
+          {
+            "companyId": "cmwudpvfz00017ga4mpuui8fa",
+            "companyName": "LedgerLite",
+            "snippet": "- Strong, efficient growth with excellent retention (134% NRR). - Real moat: correctness + auditability + switching costs once a platform embeds the ledger. - H…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "correct_core_correction",
+        "coverage": "complete",
+        "evidence": "unrelated_sources",
+        "taskFit": "overlong",
+        "notes": [
+          "Correctly rejects Invested and weak-founders premises.",
+          "Expands into unrequested meeting preparation."
+        ]
+      }
+    },
+    {
+      "id": "paid_vs_pilot",
+      "category": "Distinguish actual traction from targets",
+      "question": "Did CloudBrain AI already have paying enterprise customers, and what committed ARR was recorded?",
+      "expected": [
+        "Three design partners on free pilots.",
+        "$0 committed ARR.",
+        "Do not present target ACV or fundraising ask as achieved revenue."
+      ],
+      "requestBody": {
+        "message": "Did CloudBrain AI already have paying enterprise customers, and what committed ARR was recorded?"
+      },
+      "startedAt": "2026-11-24T15:29:48.982Z",
+      "httpStatus": 200,
+      "elapsedMs": 7622,
+      "response": {
+        "answer": "**No – CloudBrain AI does not yet have any paying enterprise customers.**  \n\n- The firm’s traction note lists three design‑partner pilots (a regional bank, a healthcare SaaS, and a logistics firm) but states **“$0 in committed ARR yet — all design partners are on free pilots.”**【2†L1-L4】  \n\nThus, there is currently no committed ARR recorded for CloudBrain AI.",
+        "citations": [
+          {
+            "companyId": "cmwudrgt0000k7ga4znntuqz1",
+            "companyName": "VaultGuard",
+            "snippet": "last year started with a leaked machine token. - The number of non-human identities is exploding with microservices and AI agents. - Compliance frameworks are s…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "sks. - GPU supply is loosening; enterprises are signing multi-year compute commitments and want to maximize utilization. - Regulatory pressure (EU AI Act, secto…"
+          },
+          {
+            "companyId": "cmwudpvfz00017ga4mpuui8fa",
+            "companyName": "LedgerLite",
+            "snippet": ", auditable double-entry ledger is genuinely hard and off-mission. LedgerLite provides it as an API with a white-label UI. Their ledger is provably correct and…"
+          },
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "ng, useful job-to-be-done. Traction: - ~$9k MRR, mostly $29-49/mo prosumer plans. - 1,300 signups, ~250 activated (built at least one live automation). - Growth…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "correct",
+        "coverage": "complete",
+        "evidence": "fabricated_reference_and_unrelated_sources",
+        "taskFit": "appropriate_length",
+        "notes": [
+          "Correct3 free pilots/$0 committedARR.",
+          "Invents inline citation marker 【2†L1-L4】 without an application line-reference contract."
+        ]
+      }
+    },
+    {
+      "id": "revenue_comparison",
+      "category": "Cross-company metrics with units",
+      "question": "Compare the recorded revenue for LedgerLite, CodeFlow AI, and FlowAI. Keep ARR and MRR separate; do not annualize.",
+      "expected": [
+        "LedgerLite: $1.8M ARR.",
+        "CodeFlow AI: $11k MRR.",
+        "FlowAI: approximately $9k MRR.",
+        "Preserve annual/monthly distinction."
+      ],
+      "requestBody": {
+        "message": "Compare the recorded revenue for LedgerLite, CodeFlow AI, and FlowAI. Keep ARR and MRR separate; do not annualize."
+      },
+      "startedAt": "2026-11-24T15:30:18.608Z",
+      "httpStatus": 200,
+      "elapsedMs": 7166,
+      "response": {
+        "answer": "**Recorded revenue (as stated in the retrieved memory)**  \n\n| Company | ARR (annual recurring revenue) | MRR (monthly recurring revenue) |\n|---------|--------------------------------|---------------------------------|\n| **LedgerLite** | **$1.8 M** (reported ARR) | – (no MRR figure provided) |\n| **CodeFlow AI** | – (no ARR figure provided) | **$11 k** MRR (from the Pro tier) |\n| **FlowAI** | – (no ARR figure provided) | **$9 k** MRR (overall) |\n\n*We only have the explicit figures above; no additional annualized or derived numbers are present in the memory.*",
+        "citations": [
+          {
+            "companyId": "cmwudpvfz00017ga4mpuui8fa",
+            "companyName": "LedgerLite",
+            "snippet": ", auditable double-entry ledger is genuinely hard and off-mission. LedgerLite provides it as an API with a white-label UI. Their ledger is provably correct and…"
+          },
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "FlowAI — Founder meeting notes Met: October 2025 Sector: SaaS (AI workflow automation) Stage: Seed Status: TRACKING (not investing now, stay close) Who we met:…"
+          },
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "de. CodeFlow indexes the whole repo and offers repo-aware completions and an agent that can carry out refactors. The demo is genuinely impressive — it correctly…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "correct_core_metrics_minor_precision_loss",
+        "coverage": "complete",
+        "evidence": "relevant_companies_but_unhelpful_excerpts",
+        "taskFit": "appropriate_table",
+        "notes": [
+          "Correct ARR/MRR distinction and main figures.",
+          "Drops approximate qualifier on FlowAI ~$9k.",
+          "UI renders answer strings as plain text rather than parsing Markdown."
+        ]
+      }
+    },
+    {
+      "id": "unsupported_decisions",
+      "category": "Original-source decision provenance",
+      "question": "What investment decisions do the original CloudBrain AI and VaultGuard decks record? If no decision is stated, say so.",
+      "expected": [
+        "Neither original deck states a firm investment decision.",
+        "No inferred Passed or Interested label."
+      ],
+      "requestBody": {
+        "message": "What investment decisions do the original CloudBrain AI and VaultGuard decks record? If no decision is stated, say so."
+      },
+      "startedAt": "2026-11-24T15:30:47.778Z",
+      "httpStatus": 200,
+      "elapsedMs": 9700,
+      "response": {
+        "answer": "**Investment decision recorded in the retrieved material**\n\n- **VaultGuard** – The pitch decks and traction notes (items [1] and [4]) describe the problem, solution, market, team, traction and go‑to‑market model, but they do **not** contain any explicit investment decision (e.g., “Invest” or “Pass”).\n\n- **CloudBrain AI** – The seed pitch deck and the follow‑up memo (items [2] and [5]) likewise lay out the product, market, traction and funding ask, but they also **do not** include a stated investment decision.\n\n**Bottom line:** Neither the VaultGuard nor the CloudBrain AI materials contain a recorded investment decision.",
+        "citations": [
+          {
+            "companyId": "cmwudrgt0000k7ga4znntuqz1",
+            "companyName": "VaultGuard",
+            "snippet": "# VaultGuard — Seed Pitch Deck **Tagline:** Non-human identity security — discover, govern, and rotate every secret, token, and machine credential. ## The probl…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "# CloudBrain AI — Seed Pitch Deck **Tagline:** The inference layer for enterprise AI — run any open model at GPT-class latency, on your own cloud. ## The proble…"
+          },
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "# Investment Memo — CodeFlow AI **Date:** September 2025 **Sector:** Developer Tools **Stage:** Seed ($3M round) **Author:** Investment team **Recommendation: P…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "correct_decisions_false_source_description",
+        "coverage": "complete_decision_portion",
+        "evidence": "invented_document_structure",
+        "taskFit": "mixed",
+        "notes": [
+          "Correctly says neither source deck records an investment decision.",
+          "Invents a CloudBrain follow-up memo; snapshot has only one CloudBrain deck.",
+          "Confuses separate chunks with separate documents."
+        ]
+      }
+    },
+    {
+      "id": "flowai_meeting",
+      "category": "Meeting preparation",
+      "conversation": "flowai-followup",
+      "turn": 1,
+      "question": "Prepare me for a follow-up meeting with FlowAI: what do we know, why are we tracking it, and what should I ask?",
+      "expected": [
+        "FlowAI: Tracking, not Passed or Invested.",
+        "Relevant facts: ~$9k MRR; $29–49/month pricing; ~55% month-2 retention; reliability concerns.",
+        "Suggested questions about upmarket/team pricing, expansion/NRR, retention, reliability.",
+        "Separate recorded facts from suggested diligence questions."
+      ],
+      "requestBody": {
+        "message": "Prepare me for a follow-up meeting with FlowAI: what do we know, why are we tracking it, and what should I ask?"
+      },
+      "startedAt": "2026-11-24T15:31:19.482Z",
+      "httpStatus": 200,
+      "elapsedMs": 10185,
+      "response": {
+        "answer": "**What we know (from the Oct 2025 meeting)**  \n\n- **Company & team** – FlowAI, founded by Grace Lin (CEO, ex‑product manager at a large workflow‑automation firm) and Raj Patel (CTO, built the v1 largely solo).  \n- **Product** – “Zapier with an AI brain”: users describe the desired outcome in plain English and FlowAI auto‑generates the end‑to‑end workflow across ~80 SaaS integrations. The demo is slick and resonates with non‑technical ops users.  \n- **Current traction** – ~\\$9 k MRR (mostly $29‑$49/mo prosumer plans), 1,300 sign‑ups, ~250 activated users (built ≥1 live automation). Growth ≈10 % MoM.  \n- **Stage** – Seed, currently **TRACKING** (not investing now).  \n\n**Why we are tracking (concerns that kept us from investing)**  \n\n- **Pricing mis‑fit** – $29‑$49/mo sits between hobbyist affordability and enterprise value; no clear seat/usage model or path to higher‑margin expansion.  \n- **Retention** – Month‑2 retention ~55 %; users often build a single automation then drift. Need a “system‑of‑record” habit to improve NRR.  \n- **Reliability** – Silent automation failures erode trust; observability and error‑handling are thin.  \n- **Competitive landscape** – AI‑automation space is crowded; today’s differentiation is primarily UX, which could be copied.  \n\n**What’s changed / still unknown (as of the latest note)**  \n\n- No new data on pricing experiments, retention improvements, or reliability upgrades.  \n- We introduced FlowAI to two ops leaders for design feedback, but we have not received a follow‑up on their input or any product iteration resulting from it.  \n- No indication of new enterprise pilots, upsell metrics, or revised pricing strategy.  \n\n**Sharp questions for the next conversation**  \n\n1. **Pricing & Monetisation** – Have you tested alternative pricing models (e.g., per‑seat, usage‑based, or team tiers) to move upmarket? What signals have you seen from the ops leaders you introduced?  \n2. **Retention & Habit Formation** – What initiatives have you launched to increase month‑2/‑3 retention (e.g., templates, scheduled automations, integration depth)? Do you have early data on net revenue retention after any changes?  \n3. **Reliability & Trust** – What observability or error‑handling features have you added since our last call to surface silent failures? How are you measuring trust signals (e.g., automation success rates, support tickets)?  \n\nThese points will help gauge whether the key risks identified earlier are being addressed and whether the company is moving toward a more investable profile.",
+        "citations": [
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "FlowAI — Founder meeting notes Met: October 2025 Sector: SaaS (AI workflow automation) Stage: Seed Status: TRACKING (not investing now, stay close) Who we met:…"
+          },
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "de. CodeFlow indexes the whole repo and offers repo-aware completions and an agent that can carry out refactors. The demo is genuinely impressive — it correctly…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "y contributor to a popular serving framework. - 4 engineers, all ex-infra. ## The ask Raising $4M seed to convert design partners to paid, build the enterprise…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "mostly_correct",
+        "coverage": "adequate",
+        "evidence": "unrelated_sources_and_weak_excerpts",
+        "taskFit": "appropriate_broad_preparation",
+        "notes": [
+          "Correct source facts, Tracking position, and suggested questions.",
+          "No follow-up is recorded should not be asserted as the firm never receiving a follow-up."
+        ]
+      }
+    },
+    {
+      "id": "flowai_followup",
+      "category": "Follow-up reference resolution",
+      "conversation": "flowai-followup",
+      "turn": 2,
+      "question": "Who founded it, and what would make us lean in?",
+      "expected": [
+        "As continuation of previous turn, it means FlowAI.",
+        "Founders Grace Lin (CEO) and Raj Patel (CTO).",
+        "Team/upmarket pricing and NRR >110%, improving month-3 retention, and reliability/observability.",
+        "Clarification is safer than guessing but falls short of conversational continuity."
+      ],
+      "requestBody": {
+        "message": "Who founded it, and what would make us lean in?"
+      },
+      "startedAt": "2026-11-24T15:31:51.670Z",
+      "httpStatus": 200,
+      "elapsedMs": 9458,
+      "response": {
+        "answer": "**Founders (as recorded in our memory)**\n- **Priya Nair** – CEO. Former staff engineer on a hyperscaler’s GPU platform; led inference infrastructure for a 10k‑GPU fleet.  \n- **Marcus Feld** – CTO. PhD in distributed systems; early contributor to a popular serving framework.  \n\n**Signals that would make us lean in (based on the memo)**  \n- **Compelling market tailwinds** – Enterprise demand for on‑prem inference is rising due to the EU AI Act, sector‑specific regulations, and loosening GPU supply; the addressable market is estimated at **$12 B by 2028**.  \n- **Strong technical moat** – CloudBrain builds a managed inference stack (continuous batching, speculative decoding, per‑token cost tracking) that abstracts away the “full platform team” effort required to run open‑weight LLMs in‑house. This differentiates it from the free, open‑source vLLM baseline.  \n- **Early traction with design partners** – Three high‑profile pilots (regional bank, healthcare SaaS, logistics firm) indicate product‑market fit in regulated verticals; converting any of these to paid ARR would validate the go‑to‑market engine.  \n- **Team depth** – Both founders and the four‑engineer core are ex‑infrastructure engineers from top‑tier cloud and AI teams, giving credibility to the execution risk.  \n\n**What we still don’t know (and would need to confirm)**  \n- Timeline and likelihood of converting the three design partners to paid contracts.  \n- How the pricing (target ACV $80‑150 k) stacks up against the free vLLM alternative in real‑world deployments.  \n- The firm’s runway and cash‑burn profile after the $4 M seed raise.  \n\n**Sharp questions for the next meeting**  \n1. **Conversion plan:** What milestones and timelines have you set to move each design partner from free pilot to a signed ARR contract?  \n2. **Competitive differentiation:** Beyond the managed control plane, how do you defend against vLLM‑powered teams that could build a comparable stack in‑house?  \n3. **Regulatory win‑back:** Can you quantify the premium enterprises are willing to pay for on‑prem inference to meet EU AI Act or sector‑specific compliance requirements?",
+        "citations": [
+          {
+            "companyId": "cmwudpvfz00017ga4mpuui8fa",
+            "companyName": "LedgerLite",
+            "snippet": "- Strong, efficient growth with excellent retention (134% NRR). - Real moat: correctness + auditability + switching costs once a platform embeds the ledger. - H…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "sks. - GPU supply is loosening; enterprises are signing multi-year compute commitments and want to maximize utilization. - Regulatory pressure (EU AI Act, secto…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "wrong_company",
+        "coverage": "fails_intended_question",
+        "evidence": "wrong_entity_sources",
+        "taskFit": "confident_wrong_entity",
+        "notes": [
+          "After FlowAI meeting prep, answers CloudBrain founders PriyaNair/MarcusFeld rather than GraceLin/RajPatel.",
+          "Current UI sends only latest message, so server lacks conversational antecedent."
+        ]
+      }
+    },
+    {
+      "id": "temporal_update",
+      "category": "Missing later update",
+      "question": "What changed in FlowAI's retention after our October 2025 meeting?",
+      "expected": [
+        "No later source document exists in current corpus.",
+        "Historical month-2 retention was around 55%.",
+        "Do not invent improvement or deterioration after the meeting."
+      ],
+      "requestBody": {
+        "message": "What changed in FlowAI's retention after our October 2025 meeting?"
+      },
+      "startedAt": "2026-11-24T15:32:23.132Z",
+      "httpStatus": 200,
+      "elapsedMs": 8638,
+      "response": {
+        "answer": "**What we know from the memory**\n\n- At the time of our October 2025 meeting, FlowAI’s retention was **around 55 % in month 2** (see the “Concerns” note in the tracking memo).  \n- The meeting notes themselves ([2]) do not mention any subsequent retention figures or an improvement/decline after the discussion.\n\n**What we concluded last time**\n\n- We flagged **retention** as a key risk: users often built a single automation and then drifted, leading to modest month‑2 retention (≈55 %).  \n- We identified that moving to a “system‑of‑record” habit and improving reliability were needed to lift retention and net‑revenue retention above 110 %.\n\n**What’s still unknown / unchanged**\n\n- The memory provides **no updated retention data** post‑October 2025. We have no indication that month‑2 (or month‑3) retention has improved, worsened, or stayed flat since the meeting.  \n\n**What to ask in the next check‑in**\n\n1. **Current retention metrics:** What are the latest month‑2 and month‑3 retention rates? Have you seen any upward trend since October 2025?  \n2. **Retention drivers:** Have you introduced any product changes (e.g., habit‑forming features, better error handling) that are impacting user stickiness?  \n3. **Revenue expansion:** Are you seeing any upsell or cross‑sell activity that could lift net‑revenue retention above 110 %?  \n\n*If you need a more precise answer, we’ll need updated metrics from FlowAI.*",
+        "citations": [
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "ng, useful job-to-be-done. Traction: - ~$9k MRR, mostly $29-49/mo prosumer plans. - 1,300 signups, ~250 activated (built at least one live automation). - Growth…"
+          },
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "ps. ## Strengths - Excellent founding team with real technical depth. - Product demo quality is high; the agentic refactor is differentiated today. - Bottoms-up…"
+          },
+          {
+            "companyId": "cmwudrgt0000k7ga4znntuqz1",
+            "companyName": "VaultGuard",
+            "snippet": "last year started with a leaked machine token. - The number of non-human identities is exploding with microservices and AI agents. - Compliance frameworks are s…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "# CloudBrain AI — Seed Pitch Deck **Tagline:** The inference layer for enterprise AI — run any open model at GPT-class latency, on your own cloud. ## The proble…"
+          },
+          {
+            "companyId": "cmwudpvfz00017ga4mpuui8fa",
+            "companyName": "LedgerLite",
+            "snippet": ", auditable double-entry ledger is genuinely hard and off-mission. LedgerLite provides it as an API with a white-label UI. Their ledger is provably correct and…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "correct_core_abstention",
+        "coverage": "complete",
+        "evidence": "unrelated_sources_and_unclear_inline_reference",
+        "taskFit": "overlong",
+        "notes": [
+          "Correctly says no later retention update is recorded.",
+          "All5 companies are cited for a FlowAI-only question."
+        ]
+      }
+    },
+    {
+      "id": "retention_comparison",
+      "category": "Comparison and distinct measurement definitions",
+      "question": "Compare CodeFlow AI's and FlowAI's adoption or retention concerns and our decisions on each.",
+      "expected": [
+        "CodeFlow AI: Passed; weak team adoption; ~12% monthly paid logo churn.",
+        "FlowAI: Tracking; ~55% month-2 retention; pricing/reliability concerns.",
+        "Do not equate monthly churn and month-2 cohort retention."
+      ],
+      "requestBody": {
+        "message": "Compare CodeFlow AI's and FlowAI's adoption or retention concerns and our decisions on each."
+      },
+      "startedAt": "2026-11-24T15:32:53.774Z",
+      "httpStatus": 200,
+      "elapsedMs": 10282,
+      "response": {
+        "answer": "**What we know**\n\n| Aspect | CodeFlow AI | FlowAI |\n|--------|------------|--------|\n| **Current traction** | 6 k individual dev sign‑ups (VS Code extension); ~900 weekly active users; $11 k MRR from a $15/mo Pro tier. No team/enterprise contracts. | ~$9 k MRR (mostly $29‑49/mo prosumer plans); 1.3 k sign‑ups, ~250 activated (built at least one live automation). |\n| **Adoption pattern** | Bottom‑up, individual hobbyists. Usage is “nice‑to‑have” rather than daily‑driver. | Early adopters are ops‑type prosumers; automation built once then abandoned. |\n| **Retention signals** | **Logo churn ≈ 12 % per month** on the paid tier (high monthly churn). | **Month‑2 retention ≈ 55 %**; month‑3 retention still low; churn not quantified but implied. |\n| **Key risks identified** | • Weak team‑level adoption (no seats/enterprise). <br>• Distribution disadvantage vs GitHub/Microsoft, Cursor, etc. <br>• Thin moat – repo‑aware agent being copied. | • Pricing stuck between hobbyist and enterprise; no clear seat/usage model. <br>• Low retention & habit formation; automations often “one‑off”. <br>• Reliability/observability gaps erode trust. <br>• Crowded AI‑automation space; differentiation is UX‑level. |\n| **Decision** | **PASS** – excellent founders but seed round needs defensible distribution or clear team‑level habit before we would consider. | **TRACKING (not investing now)** – keep an eye on pricing, retention, and reliability improvements; revisit in 1‑2 quarters. |\n\n**What we concluded last time and why it matters**\n\n*CodeFlow AI* – The team’s technical depth and demo quality impressed us, but the product is still a shallow, individual‑focused tool with 12 % monthly churn and no enterprise traction. In a category dominated by GitHub‑backed incumbents, we judged the moat too thin for a seed investment. The decision to **PASS** hinges on the need for a defensible distribution channel or a clear team‑level use case.\n\n*FlowAI* – We liked the “AI‑brain Zapier” concept and the founder’s GTM chops, but the business model sits uncomfortably between hobbyist pricing and enterprise value. Retention (55 % at month‑2) and reliability concerns signal that the product has not yet become a trusted, repeat‑use system. Hence we placed them on **TRACKING**, with a view to revisit if they can prove up‑market pricing, higher net‑revenue retention (>110 %), and stronger habit formation.\n\n**What’s changed / still unknown**\n\n- **CodeFlow AI:** No new team/enterprise pilots or pricing shifts have been reported since the last memo. The churn rate remains high; we lack any evidence of a moving “team‑level” adoption metric.\n- **FlowAI:** No updated retention numbers beyond month‑2, and no public evidence that they have re‑engineered pricing or reliability. We only know we introduced them to two ops leaders for design feedback; outcome of that feedback is unknown.\n\n**Sharp questions to ask in the next meeting**\n\n1. **CodeFlow AI:**  \n   - Have you piloted the Pro tier with any engineering teams or enterprise customers? If so, what is the churn/usage pattern at the seat level?  \n   -",
+        "citations": [
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "ps. ## Strengths - Excellent founding team with real technical depth. - Product demo quality is high; the agentic refactor is differentiated today. - Bottoms-up…"
+          },
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "ng, useful job-to-be-done. Traction: - ~$9k MRR, mostly $29-49/mo prosumer plans. - 1,300 signups, ~250 activated (built at least one live automation). - Growth…"
+          },
+          {
+            "companyId": "cmwudpvfz00017ga4mpuui8fa",
+            "companyName": "LedgerLite",
+            "snippet": "- Strong, efficient growth with excellent retention (134% NRR). - Real moat: correctness + auditability + switching costs once a platform embeds the ledger. - H…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "mixed",
+        "coverage": "main_comparison_present_but_unfinished",
+        "evidence": "unrelated_source_and_unsupported_claim",
+        "taskFit": "overextended_truncated",
+        "notes": [
+          "Core decisions,12% monthly churn and55% month2 retention are correct.",
+          "Asserts month3 retention still low without a recorded value; later admits missing data.",
+          "Response ends mid-list. API does not return finish_reason, so exact cause of truncation is unverified."
+        ]
+      }
+    }
+  ],
+  "diagnosticControls": [
+    {
+      "id": "followup_explicit_control",
+      "category": "Diagnostic control: resolve follow-up into named-company question",
+      "diagnosticControl": true,
+      "question": "Who founded FlowAI, and what changes were recorded as necessary before we would lean in? Give only the founders and the recorded conditions.",
+      "expected": [
+        "Grace Lin (CEO) and Raj Patel (CTO).",
+        "Upmarket/team pricing, NRR >110%, improved month-3 retention, reliability/observability.",
+        "This tests explicit reference resolution, not an implemented product change."
+      ],
+      "requestBody": {
+        "message": "Who founded FlowAI, and what changes were recorded as necessary before we would lean in? Give only the founders and the recorded conditions."
+      },
+      "startedAt": "2026-11-24T15:33:41.408Z",
+      "httpStatus": 200,
+      "elapsedMs": 10455,
+      "response": {
+        "answer": "**Founders**  \n- Grace Lin – CEO  \n- Raj Patel – CTO  \n\n**Recorded conditions for leaning in**  \n- The memory contains no explicit “must‑have” changes or milestones that were listed as prerequisites for moving from “tracking” to a potential investment. The only note is the current status (“TRACKING – not investing now, stay close”).",
+        "citations": [
+          {
+            "companyId": "cmwudqavs000g7ga4yk0r7kuo",
+            "companyName": "FlowAI",
+            "snippet": "FlowAI — Founder meeting notes Met: October 2025 Sector: SaaS (AI workflow automation) Stage: Seed Status: TRACKING (not investing now, stay close) Who we met:…"
+          },
+          {
+            "companyId": "cmwudq68a000b7ga4c3a1pdfb",
+            "companyName": "CodeFlow AI",
+            "snippet": "# Investment Memo — CodeFlow AI **Date:** September 2025 **Sector:** Developer Tools **Stage:** Seed ($3M round) **Author:** Investment team **Recommendation: P…"
+          },
+          {
+            "companyId": "cmwudq18z00067ga4seh9du2f",
+            "companyName": "CloudBrain AI",
+            "snippet": "y contributor to a popular serving framework. - 4 engineers, all ex-infra. ## The ask Raising $4M seed to convert design partners to paid, build the enterprise…"
+          },
+          {
+            "companyId": "cmwudrgt0000k7ga4znntuqz1",
+            "companyName": "VaultGuard",
+            "snippet": "last year started with a leaked machine token. - The number of non-human identities is exploding with microservices and AI agents. - Compliance frameworks are s…"
+          }
+        ]
+      },
+      "retryAfter": null,
+      "sourceBasedReview": {
+        "facts": "correct_founders_false_absence_of_conditions",
+        "coverage": "incomplete",
+        "evidence": "missed_evidence_and_unrelated_sources",
+        "taskFit": "concise_but_incomplete",
+        "notes": [
+          "Explicitly namingFlowAI restores correct founders.",
+          "Still claims no recorded conditions despite What would make us lean in section in source."
+        ]
+      }
+    },
+    {
+      "id": "flowai_full_source_control",
+      "diagnosticControl": true,
+      "category": "Full-source evidence control outside retrieval",
+      "method": "Same configured Groq model, current CHAT_SYSTEM, temperature0.3/max_tokens900; verified complete FlowAI source replaces retrieved snippets. This is a diagnostic intervention, not a changed app.",
+      "question": "Who founded FlowAI, and what changes were recorded as necessary before we would lean in? Give only the founders and the recorded conditions.",
+      "model": "openai/gpt-oss-120b",
+      "sourceFilename": "flowai-notes.txt",
+      "sourcePublicUrl": "https://raw.githubusercontent.com/Dibya-z/VC-Memory-AI/main/data/demo/flowai-notes.txt",
+      "sourceChars": 2012,
+      "answer": "**Founders**  \n- Grace Lin – CEO  \n- Raj Patel – CTO  \n\n**Conditions we said would make us lean in**  \n- Shift up‑market with a clear, team‑oriented pricing model and achieve net‑revenue‑retention > 110%  \n- Show materially better month‑3 retention (beyond the current ~55% month‑2 rate)  \n- Build a robust reliability/observability framework so failures are visible and trusted.",
+      "finishReason": "stop",
+      "usage": {
+        "queue_time": 0.318563338,
+        "prompt_tokens": 808,
+        "prompt_time": 0.041222859,
+        "completion_tokens": 230,
+        "completion_time": 0.481323349,
+        "total_tokens": 1038,
+        "total_time": 0.522546208,
+        "completion_tokens_details": {
+          "reasoning_tokens": 122
+        }
+      },
+      "elapsedMs": 1106,
+      "startedAt": "2026-11-24T15:35:42.185Z",
+      "sourceBasedReview": {
+        "facts": "restores_recorded_conditions_with_minor_wording_caveat",
+        "notes": [
+          "Returns GraceLin/RajPatel and all three recorded condition groups.",
+          "Source gives no numerical month3-retention target. The wording beyond current55% month2 rate should not be interpreted as a required month3 threshold.",
+          "Compared with explicit-name API control, this supports an evidence-selection/context-use bottleneck; it does not isolate retrieval alone because complete API context/model telemetry was unavailable and samples were not repeated."
+        ]
+      }
+    }
+  ],
+  "diagnosis": [
+    {
+      "finding": "Incomplete exact lists/counts",
+      "evidenceCases": [
+        "complete_inventory"
+      ],
+      "firstCorrection": "Validated intent routing to typed current company list/count queries."
+    },
+    {
+      "finding": "Missing conversational reference resolution",
+      "evidenceCases": [
+        "flowai_meeting",
+        "flowai_followup",
+        "followup_explicit_control"
+      ],
+      "firstCorrection": "Bounded conversation/active-company context and explicit standalone retrieval questions."
+    },
+    {
+      "finding": "Missed in-company evidence",
+      "evidenceCases": [
+        "followup_explicit_control",
+        "flowai_full_source_control"
+      ],
+      "firstCorrection": "Company-scoped retrieval and complete relevant source sections before optional reranking.",
+      "inferenceLimit": "Full-source control is one controlled diagnostic with same configured model/prompt settings, not a statistical causal study."
+    },
+    {
+      "finding": "Citations are not selected supporting evidence",
+      "evidenceCases": [
+        "exact_metrics",
+        "unknown_company",
+        "paid_vs_pilot",
+        "unsupported_decisions"
+      ],
+      "firstCorrection": "Document/chunk metadata plus validated used-source identifiers and supporting excerpts."
+    },
+    {
+      "finding": "Unsupported additions and unfinished responses",
+      "evidenceCases": [
+        "decision_reason",
+        "retention_comparison"
+      ],
+      "firstCorrection": "Task-specific concise answer contracts, explicit fact/inference separation, and completion finish-reason handling."
+    }
+  ],
+  "recommendedImplementationOrder": [
+    "Retain these questions/expected evidence as regression cases.",
+    "Typed query intent/entity routing for exact company facts/lists/counts.",
+    "Bounded conversation context and follow-up resolution.",
+    "Company-scoped retrieval with complete source section/document metadata.",
+    "Answer schema with selected valid sourceIDs, date scope, unknowns, and concise task-specific formatting.",
+    "Evaluate lexical+dense retrieval and optional reranking only after the basic corrections."
+  ],
+  "limitations": [
+    "Hand-selected sample from5 fictional companies/5 documents; no global accuracy or industry-performance claims.",
+    "Baseline generations were not repeated; sampling may change individual wording/results.",
+    "Raw elapsedMs includes a read-only corpus guard plus HTTP request; not an endpoint latency benchmark.",
+    "The API omits retrieval traces and model completion metadata; cause statements distinguish observed errors from code-supported inference.",
+    "Frontend was inspected in source; requests reproduce its backend payload, not a browser visual test."
+  ],
+  "primaryReferences": [
+    {
+      "topic": "Query processing and retrieval strategies",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-information-retrieval"
+    },
+    {
+      "topic": "Contextual passage retrieval",
+      "url": "https://www.anthropic.com/research/contextual-retrieval"
+    },
+    {
+      "topic": "Optional reranking",
+      "url": "https://docs.voyageai.com/docs/reranker"
+    },
+    {
+      "topic": "Separate retrieval and generation evaluation",
+      "url": "https://aclanthology.org/2024.naacl-long.20/"
+    }
+  ]
+}

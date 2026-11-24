@@ -17,9 +17,13 @@ next-env.d.ts
 prisma/dev.db*
 
 # env
-.env
-.env.local
-.env*.local
+.env*
+!.env.example
+
+# locally installed agent skills and generated diagram workspaces
+/.agents/skills/
+/.archify/
+/skills-lock.json
 
 # misc
 .DS_Store

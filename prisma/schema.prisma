@@ -8,8 +8,6 @@
 //   2. Raw source material        -> Document  (the original pitch deck / memo / notes)
 //   3. Semantic search index      -> Chunk     (embedded text for RAG retrieval)
 //
-// Plus Conversation/Message for the memory chatbot.
-//
 // Provider is PostgreSQL (Neon free tier) so the database persists on a
 // serverless host like Vercel. `url` is the POOLED connection (used at runtime);
 // `directUrl` is the DIRECT connection (used by `prisma db push` / migrations).
@@ -114,28 +112,4 @@ model Chunk {
 
   @@index([companyId])
   @@index([documentId])
-}
-
-/// A chat session with the firm's memory.
-model Conversation {
-  id        String    @id @default(cuid())
-  title     String?
-  createdAt DateTime  @default(now())
-  messages  Message[]
-}
-
-/// A single turn in a memory chat. Assistant turns may carry citations back to
-/// the companies/documents that grounded the answer.
-model Message {
-  id             String       @id @default(cuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-
-  role      String // "user" | "assistant"
-  content   String
-  citations Json? // [{ companyId, companyName, snippet }]
-
-  createdAt DateTime @default(now())
-
-  @@index([conversationId])
 }

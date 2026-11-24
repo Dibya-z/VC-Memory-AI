@@ -52,11 +52,9 @@ export async function ingestDemoCorpus(): Promise<void> {
 }
 
 /** Clear prior data so re-running gives a reproducible demo. Order respects
- *  foreign keys (chunks/messages -> documents/conversations -> companies). */
+ *  foreign keys (chunks -> documents -> companies). */
 async function resetData(): Promise<void> {
   await prisma.chunk.deleteMany();
-  await prisma.message.deleteMany();
-  await prisma.conversation.deleteMany();
   await prisma.document.deleteMany();
   await prisma.company.deleteMany();
 }
