@@ -1,0 +1,1791 @@
+{
+  "schemaVersion": 1,
+  "mode": "fixture",
+  "corpus": "committed-fictional-demo-documents",
+  "corpusFingerprint": "3e7dab314148d280f44c6af28ca483d67fcd6bec25daaf9891280eefbb889f5f",
+  "configuredProviders": "scripted mocks",
+  "cases": [
+    {
+      "id": "decision_reason",
+      "question": "Why did we pass on CodeFlow AI? Was the problem its founding team?",
+      "expected": [
+        "CodeFlow AI: Passed.",
+        "Strong technical founders; team quality was a strength.",
+        "Weak team adoption/retention, distribution disadvantage, thin moat."
+      ],
+      "before": {
+        "facts": "mostly_correct",
+        "coverage": "adequate",
+        "evidence": "unrelated_sources_and_unsupported_additions",
+        "taskFit": "overlong",
+        "notes": [
+          "Correct Passed decision and strong founders.",
+          "Unrecorded claim: no defensible IP or network effect yet.",
+          "Unrelated FlowAI/CloudBrain sources."
+        ]
+      },
+      "answer": "Recorded fact: CodeFlow AI was Passed; its founding team was excellent. [doc:code-doc:0-2561]\n\nRecorded fact: The memo flags weak team adoption, distribution disadvantage, and a thin moat. [doc:code-doc:0-2561]",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "code",
+          "companyName": "CodeFlow AI",
+          "snippet": "**PASS.** The team is excellent",
+          "evidenceId": "doc:code-doc:0-2561",
+          "documentId": "code-doc",
+          "documentName": "codeflow-ai-memo.md",
+          "documentType": "memo",
+          "chunkId": null,
+          "sourceDate": "September 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "**PASS.** The team is excellent",
+          "location": {
+            "start": 2191,
+            "end": 2222
+          }
+        },
+        {
+          "companyId": "code",
+          "companyName": "CodeFlow AI",
+          "snippet": "- **Weak team/seat adoption** — usage is individual hobbyists, not teams. The paid retention (12% monthly churn) suggests the product is a \"nice-to-have,\" not yet a daily driver.\n- **Distribution disadvantage** — competing head-on with GitHub/Microsoft and Cursor, who own the surface area and move fast.\n- **Thin moat** — the differentiation (repo-aware agent) is being rapidly copied by better-funded competitors.\n- No clear wedge into teams, where the budget actually sits.",
+          "evidenceId": "doc:code-doc:0-2561",
+          "documentId": "code-doc",
+          "documentName": "codeflow-ai-memo.md",
+          "documentType": "memo",
+          "chunkId": null,
+          "sourceDate": "September 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "- **Weak team/seat adoption** — usage is individual hobbyists, not teams. The paid retention (12% monthly churn) suggests the product is a \"nice-to-have,\" not yet a daily driver.\n- **Distribution disadvantage** — competing head-on with GitHub/Microsoft and Cursor, who own the surface area and move fast.\n- **Thin moat** — the differentiation (repo-aware agent) is being rapidly copied by better-funded competitors.\n- No clear wedge into teams, where the budget actually sits.",
+          "location": {
+            "start": 1701,
+            "end": 2177
+          }
+        }
+      ],
+      "activeCompanyId": "code",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "code"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Why did we pass on CodeFlow AI? Was the problem its founding team?"
+        },
+        "evidenceIds": [
+          "company:code",
+          "doc:code-doc:0-2561"
+        ],
+        "elapsedMs": 17,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 5
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "PASS/team excerpt and full Risks & concerns section support the correction and each principal reason."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 2
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "exact_metrics",
+      "question": "What ARR, net revenue retention, and number of platform customers were recorded for LedgerLite?",
+      "expected": [
+        "$1.8M ARR.",
+        "134% net revenue retention.",
+        "22 platform customers."
+      ],
+      "before": {
+        "facts": "correct",
+        "coverage": "complete",
+        "evidence": "poor_citation_precision",
+        "taskFit": "appropriate",
+        "notes": [
+          "Correct $1.8M ARR,134% NRR,22 customers.",
+          "Three unrelated company citations; displayed LedgerLite snippet does not contain requested figures."
+        ]
+      },
+      "answer": "Recorded fact: LedgerLite recorded $1.8M ARR, 134% net revenue retention, and 22 platform customers in July 2025. [doc:ledger-doc:0-2479]",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "ledger",
+          "companyName": "LedgerLite",
+          "snippet": "- $1.8M ARR, growing 18% month-over-month for the last 6 months.\n- 22 platform customers, including two that each contribute >$200k ARR.\n- Net revenue retention of 134%.",
+          "evidenceId": "doc:ledger-doc:0-2479",
+          "documentId": "ledger-doc",
+          "documentName": "ledgerlite-memo.md",
+          "documentType": "memo",
+          "chunkId": null,
+          "sourceDate": "July 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "- $1.8M ARR, growing 18% month-over-month for the last 6 months.\n- 22 platform customers, including two that each contribute >$200k ARR.\n- Net revenue retention of 134%.",
+          "location": {
+            "start": 1199,
+            "end": 1368
+          }
+        }
+      ],
+      "activeCompanyId": "ledger",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "ledger"
+          ],
+          "filters": {},
+          "standaloneQuestion": "What ARR, net revenue retention, and number of platform customers were recorded for LedgerLite?"
+        },
+        "evidenceIds": [
+          "company:ledger",
+          "doc:ledger-doc:0-2479"
+        ],
+        "elapsedMs": 6,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 3
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "One Traction excerpt contains all three values; July 2025 comes from the verified source Date heading."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 1
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "complete_inventory",
+      "question": "List every company currently in our memory and its recorded investment decision, then give the total company count. Say \"not recorded\" where no decision is recorded; do not infer a decision from a pitch deck.",
+      "expected": [
+        "Exactly five companies, no omissions or additions.",
+        "CloudBrain AI: not recorded.",
+        "CodeFlow AI: Passed.",
+        "FlowAI: Tracking.",
+        "LedgerLite: Invested.",
+        "VaultGuard: not recorded."
+      ],
+      "before": {
+        "facts": "incorrect",
+        "coverage": "incomplete",
+        "evidence": "retrieved_subset_not_entire_corpus",
+        "taskFit": "failed_exhaustive_request",
+        "notes": [
+          "Reports3 companies but current database has5.",
+          "Omits FlowAI and VaultGuard."
+        ]
+      },
+      "answer": "• CloudBrain AI: not recorded. [company:cloud]\n• CodeFlow AI: Passed. [company:code]\n• FlowAI: Tracking. [company:flow]\n• LedgerLite: Invested. [company:ledger]\n• VaultGuard: not recorded. [company:vault]\n\nTotal companies: 5.\nThese are current company records; source documents may describe earlier positions.",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "cloud",
+          "companyName": "CloudBrain AI",
+          "snippet": "Current company record: CloudBrain AI\nRecorded decision: not recorded",
+          "evidenceId": "company:cloud",
+          "documentId": null,
+          "documentName": null,
+          "documentType": null,
+          "sourceDate": null,
+          "uploadedAt": null,
+          "chunkId": null,
+          "quote": "Current company record: CloudBrain AI\nRecorded decision: not recorded",
+          "location": {
+            "start": 0,
+            "end": 69
+          }
+        },
+        {
+          "companyId": "code",
+          "companyName": "CodeFlow AI",
+          "snippet": "Current company record: CodeFlow AI\nRecorded decision: Passed",
+          "evidenceId": "company:code",
+          "documentId": null,
+          "documentName": null,
+          "documentType": null,
+          "sourceDate": null,
+          "uploadedAt": null,
+          "chunkId": null,
+          "quote": "Current company record: CodeFlow AI\nRecorded decision: Passed",
+          "location": {
+            "start": 0,
+            "end": 61
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Current company record: FlowAI\nRecorded decision: Tracking",
+          "evidenceId": "company:flow",
+          "documentId": null,
+          "documentName": null,
+          "documentType": null,
+          "sourceDate": null,
+          "uploadedAt": null,
+          "chunkId": null,
+          "quote": "Current company record: FlowAI\nRecorded decision: Tracking",
+          "location": {
+            "start": 0,
+            "end": 58
+          }
+        },
+        {
+          "companyId": "ledger",
+          "companyName": "LedgerLite",
+          "snippet": "Current company record: LedgerLite\nRecorded decision: Invested",
+          "evidenceId": "company:ledger",
+          "documentId": null,
+          "documentName": null,
+          "documentType": null,
+          "sourceDate": null,
+          "uploadedAt": null,
+          "chunkId": null,
+          "quote": "Current company record: LedgerLite\nRecorded decision: Invested",
+          "location": {
+            "start": 0,
+            "end": 62
+          }
+        },
+        {
+          "companyId": "vault",
+          "companyName": "VaultGuard",
+          "snippet": "Current company record: VaultGuard\nRecorded decision: not recorded",
+          "evidenceId": "company:vault",
+          "documentId": null,
+          "documentName": null,
+          "documentType": null,
+          "sourceDate": null,
+          "uploadedAt": null,
+          "chunkId": null,
+          "quote": "Current company record: VaultGuard\nRecorded decision: not recorded",
+          "location": {
+            "start": 0,
+            "end": 66
+          }
+        }
+      ],
+      "activeCompanyId": null,
+      "trace": {
+        "plan": {
+          "intent": "inventory",
+          "companyIds": [],
+          "filters": {},
+          "standaloneQuestion": "List every company currently in our memory and its recorded investment decision, then give the total company count. Say \"not recorded\" where no decision is recorded; do not infer a decision from a pitch deck."
+        },
+        "evidenceIds": [
+          "company:cloud",
+          "company:code",
+          "company:flow",
+          "company:ledger",
+          "company:vault"
+        ],
+        "elapsedMs": 2,
+        "exactQuery": {
+          "operation": "list",
+          "rowCount": 5
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 6
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "All current fixture records are listed, including two null decisions; list/count bypass generation and retrieval."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 0
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "missing_facts",
+      "question": "What are FlowAI's cash runway and monthly burn rate? Please use only recorded information.",
+      "expected": [
+        "Neither runway nor monthly burn is recorded.",
+        "No invented number or estimate from MRR."
+      ],
+      "before": {
+        "facts": "correct_abstention",
+        "coverage": "complete",
+        "evidence": "unrelated_sources",
+        "taskFit": "appropriate",
+        "notes": [
+          "Correctly refuses to invent runway/burn.",
+          "Attaches unrelated CodeFlow/CloudBrain sources."
+        ]
+      },
+      "answer": "Not recorded / uncertain: FlowAI's cash runway and monthly burn rate are not recorded in the available notes.",
+      "status": "complete",
+      "citations": [],
+      "activeCompanyId": "flow",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "flow"
+          ],
+          "filters": {},
+          "standaloneQuestion": "What are FlowAI's cash runway and monthly burn rate? Please use only recorded information."
+        },
+        "evidenceIds": [
+          "company:flow",
+          "doc:flow-doc:0-2013"
+        ],
+        "elapsedMs": 5,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 3
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "The complete sole FlowAI notes contain neither runway nor burn; the absence response returns no unrelated citation."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 0
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "unknown_company",
+      "question": "What was our decision on Orchid Robotics, and who founded it?",
+      "expected": [
+        "No Orchid Robotics record exists in this corpus.",
+        "No invented company decision or founders."
+      ],
+      "before": {
+        "facts": "correct_abstention",
+        "coverage": "complete",
+        "evidence": "all_five_sources_unrelated",
+        "taskFit": "appropriate_text",
+        "notes": [
+          "Correctly says Orchid Robotics is absent.",
+          "Attaches all5 unrelated company sources."
+        ]
+      },
+      "answer": "I couldn't find a company record for Orchid Robotics in memory. Its founders and investment decision are not recorded here.",
+      "status": "insufficient_evidence",
+      "citations": [],
+      "activeCompanyId": null,
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [],
+          "filters": {},
+          "standaloneQuestion": "What was our decision on Orchid Robotics, and who founded it?",
+          "unknownCompany": "Orchid Robotics"
+        },
+        "evidenceIds": [],
+        "elapsedMs": 1
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 2
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "Catalog lookup finds no Orchid Robotics record; no source or provider is used to infer its facts."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 0
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "insufficient_evidence"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "false_premise",
+      "question": "Since we invested in CodeFlow AI, what convinced us to overlook its weak founders?",
+      "expected": [
+        "Correct that CodeFlow AI was Passed, not Invested.",
+        "Correct that its technical founders were praised, not weak.",
+        "Explain adoption/distribution/moat concerns."
+      ],
+      "before": {
+        "facts": "correct_core_correction",
+        "coverage": "complete",
+        "evidence": "unrelated_sources",
+        "taskFit": "overlong",
+        "notes": [
+          "Correctly rejects Invested and weak-founders premises.",
+          "Expands into unrequested meeting preparation."
+        ]
+      },
+      "answer": "Recorded fact: CodeFlow AI was Passed; its founding team was excellent. [doc:code-doc:0-2561]\n\nRecorded fact: The memo flags weak team adoption, distribution disadvantage, and a thin moat. [doc:code-doc:0-2561]",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "code",
+          "companyName": "CodeFlow AI",
+          "snippet": "**PASS.** The team is excellent",
+          "evidenceId": "doc:code-doc:0-2561",
+          "documentId": "code-doc",
+          "documentName": "codeflow-ai-memo.md",
+          "documentType": "memo",
+          "chunkId": null,
+          "sourceDate": "September 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "**PASS.** The team is excellent",
+          "location": {
+            "start": 2191,
+            "end": 2222
+          }
+        },
+        {
+          "companyId": "code",
+          "companyName": "CodeFlow AI",
+          "snippet": "- **Weak team/seat adoption** — usage is individual hobbyists, not teams. The paid retention (12% monthly churn) suggests the product is a \"nice-to-have,\" not yet a daily driver.\n- **Distribution disadvantage** — competing head-on with GitHub/Microsoft and Cursor, who own the surface area and move fast.\n- **Thin moat** — the differentiation (repo-aware agent) is being rapidly copied by better-funded competitors.\n- No clear wedge into teams, where the budget actually sits.",
+          "evidenceId": "doc:code-doc:0-2561",
+          "documentId": "code-doc",
+          "documentName": "codeflow-ai-memo.md",
+          "documentType": "memo",
+          "chunkId": null,
+          "sourceDate": "September 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "- **Weak team/seat adoption** — usage is individual hobbyists, not teams. The paid retention (12% monthly churn) suggests the product is a \"nice-to-have,\" not yet a daily driver.\n- **Distribution disadvantage** — competing head-on with GitHub/Microsoft and Cursor, who own the surface area and move fast.\n- **Thin moat** — the differentiation (repo-aware agent) is being rapidly copied by better-funded competitors.\n- No clear wedge into teams, where the budget actually sits.",
+          "location": {
+            "start": 1701,
+            "end": 2177
+          }
+        }
+      ],
+      "activeCompanyId": "code",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "code"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Since we invested in CodeFlow AI, what convinced us to overlook its weak founders?"
+        },
+        "evidenceIds": [
+          "company:code",
+          "doc:code-doc:0-2561"
+        ],
+        "elapsedMs": 0,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 5
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "PASS and excellent-team source wording correct both premises; the retained risks support adoption, distribution and moat concerns."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 2
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "paid_vs_pilot",
+      "question": "Did CloudBrain AI already have paying enterprise customers, and what committed ARR was recorded?",
+      "expected": [
+        "Three design partners on free pilots.",
+        "$0 committed ARR.",
+        "Do not present target ACV or fundraising ask as achieved revenue."
+      ],
+      "before": {
+        "facts": "correct",
+        "coverage": "complete",
+        "evidence": "fabricated_reference_and_unrelated_sources",
+        "taskFit": "appropriate_length",
+        "notes": [
+          "Correct3 free pilots/$0 committedARR.",
+          "Invents inline citation marker 【2†L1-L4】 without an application line-reference contract."
+        ]
+      },
+      "answer": "Recorded fact: CloudBrain AI had three free design partners and $0 committed ARR. Target ACV and the fundraise were not achieved revenue. [doc:cloud-doc:0-2233]",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "cloud",
+          "companyName": "CloudBrain AI",
+          "snippet": "- 3 design partners (a regional bank, a healthcare SaaS company, a logistics firm).\n- $0 in committed ARR yet — all design partners are on free pilots.",
+          "evidenceId": "doc:cloud-doc:0-2233",
+          "documentId": "cloud-doc",
+          "documentName": "cloudbrain-ai-deck.md",
+          "documentType": "pitch_deck",
+          "chunkId": null,
+          "sourceDate": null,
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "- 3 design partners (a regional bank, a healthcare SaaS company, a logistics firm).\n- $0 in committed ARR yet — all design partners are on free pilots.",
+          "location": {
+            "start": 1124,
+            "end": 1275
+          }
+        }
+      ],
+      "activeCompanyId": "cloud",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "cloud"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Did CloudBrain AI already have paying enterprise customers, and what committed ARR was recorded?"
+        },
+        "evidenceIds": [
+          "company:cloud",
+          "doc:cloud-doc:0-2233"
+        ],
+        "elapsedMs": 1,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 3
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "The Traction excerpt explicitly states three partners, free pilots and zero committed ARR; target ACV/fundraise remain targets."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 1
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "revenue_comparison",
+      "question": "Compare the recorded revenue for LedgerLite, CodeFlow AI, and FlowAI. Keep ARR and MRR separate; do not annualize.",
+      "expected": [
+        "LedgerLite: $1.8M ARR.",
+        "CodeFlow AI: $11k MRR.",
+        "FlowAI: approximately $9k MRR.",
+        "Preserve annual/monthly distinction."
+      ],
+      "before": {
+        "facts": "correct_core_metrics_minor_precision_loss",
+        "coverage": "complete",
+        "evidence": "relevant_companies_but_unhelpful_excerpts",
+        "taskFit": "appropriate_table",
+        "notes": [
+          "Correct ARR/MRR distinction and main figures.",
+          "Drops approximate qualifier on FlowAI ~$9k.",
+          "UI renders answer strings as plain text rather than parsing Markdown."
+        ]
+      },
+      "answer": "Recorded fact: LedgerLite: $1.8M ARR, July 2025. [doc:ledger-doc:0-2479]\n\nRecorded fact: CodeFlow AI: $11k MRR, September 2025. [doc:code-doc:0-2561]\n\nRecorded fact: FlowAI: approximately $9k MRR, October 2025. [doc:flow-doc:0-2013]",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "ledger",
+          "companyName": "LedgerLite",
+          "snippet": "$1.8M ARR, growing 18% month-over-month",
+          "evidenceId": "doc:ledger-doc:0-2479",
+          "documentId": "ledger-doc",
+          "documentName": "ledgerlite-memo.md",
+          "documentType": "memo",
+          "chunkId": null,
+          "sourceDate": "July 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "$1.8M ARR, growing 18% month-over-month",
+          "location": {
+            "start": 1201,
+            "end": 1240
+          }
+        },
+        {
+          "companyId": "code",
+          "companyName": "CodeFlow AI",
+          "snippet": "$11k MRR from a $15/mo Pro tier",
+          "evidenceId": "doc:code-doc:0-2561",
+          "documentId": "code-doc",
+          "documentName": "codeflow-ai-memo.md",
+          "documentType": "memo",
+          "chunkId": null,
+          "sourceDate": "September 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "$11k MRR from a $15/mo Pro tier",
+          "location": {
+            "start": 1148,
+            "end": 1179
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "~$9k MRR, mostly $29-49/mo prosumer plans.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "~$9k MRR, mostly $29-49/mo prosumer plans.",
+          "location": {
+            "start": 963,
+            "end": 1005
+          }
+        }
+      ],
+      "activeCompanyId": null,
+      "trace": {
+        "plan": {
+          "intent": "comparison",
+          "companyIds": [
+            "code",
+            "flow",
+            "ledger"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Compare the recorded revenue for LedgerLite, CodeFlow AI, and FlowAI. Keep ARR and MRR separate; do not annualize."
+        },
+        "evidenceIds": [
+          "company:code",
+          "company:flow",
+          "company:ledger",
+          "doc:code-doc:0-2561",
+          "doc:flow-doc:0-2013",
+          "doc:ledger-doc:0-2479"
+        ],
+        "elapsedMs": 12,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 3
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "Separate company Traction excerpts preserve annual versus monthly units and FlowAI approximation; dates retain source precision."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 3
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "unsupported_decisions",
+      "question": "What investment decisions do the original CloudBrain AI and VaultGuard decks record? If no decision is stated, say so.",
+      "expected": [
+        "Neither original deck states a firm investment decision.",
+        "No inferred Passed or Interested label."
+      ],
+      "before": {
+        "facts": "correct_decisions_false_source_description",
+        "coverage": "complete_decision_portion",
+        "evidence": "invented_document_structure",
+        "taskFit": "mixed",
+        "notes": [
+          "Correctly says neither source deck records an investment decision.",
+          "Invents a CloudBrain follow-up memo; snapshot has only one CloudBrain deck.",
+          "Confuses separate chunks with separate documents."
+        ]
+      },
+      "answer": "Not recorded / uncertain: The original CloudBrain AI and VaultGuard decks do not record a firm investment decision.",
+      "status": "complete",
+      "citations": [],
+      "activeCompanyId": null,
+      "trace": {
+        "plan": {
+          "intent": "comparison",
+          "companyIds": [
+            "cloud",
+            "vault"
+          ],
+          "filters": {},
+          "standaloneQuestion": "What investment decisions do the original CloudBrain AI and VaultGuard decks record? If no decision is stated, say so."
+        },
+        "evidenceIds": [
+          "doc:cloud-doc:0-2233",
+          "doc:vault-doc:0-2416"
+        ],
+        "elapsedMs": 0,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 3
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "Both complete original fixture decks were inspected: neither records a firm decision; no later memo is asserted."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 0
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "flowai_meeting",
+      "question": "Prepare me for a follow-up meeting with FlowAI: what do we know, why are we tracking it, and what should I ask?",
+      "expected": [
+        "FlowAI: Tracking, not Passed or Invested.",
+        "Relevant facts: ~$9k MRR; $29–49/month pricing; ~55% month-2 retention; reliability concerns.",
+        "Suggested questions about upmarket/team pricing, expansion/NRR, retention, reliability.",
+        "Separate recorded facts from suggested diligence questions."
+      ],
+      "before": {
+        "facts": "mostly_correct",
+        "coverage": "adequate",
+        "evidence": "unrelated_sources_and_weak_excerpts",
+        "taskFit": "appropriate_broad_preparation",
+        "notes": [
+          "Correct source facts, Tracking position, and suggested questions.",
+          "No follow-up is recorded should not be asserted as the firm never receiving a follow-up."
+        ]
+      },
+      "answer": "Recorded fact: FlowAI: Tracking in October 2025. [doc:flow-doc:0-2013]\n\nRecorded fact: Approximately $9k MRR on $29-49/month prosumer pricing. [doc:flow-doc:0-2013]\n\nRecorded fact: Month-2 retention was around 55%. [doc:flow-doc:0-2013]\n\nRecorded fact: Move upmarket to teams with proper pricing and NRR above 110%. [doc:flow-doc:0-2013]\n\nRecorded fact: Improve month-3 retention materially; no numerical month-3 target is recorded. [doc:flow-doc:0-2013]\n\nRecorded fact: Establish reliability and observability so automations are trustworthy. [doc:flow-doc:0-2013]\n\nNot recorded / uncertain: No later retention update is retained; current real-world performance is unknown.\n\nSuggested diligence question: What has changed in team pricing, NRR, retention, and reliability?",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Status: TRACKING (not investing now, stay close)",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Status: TRACKING (not investing now, stay close)",
+          "location": {
+            "start": 99,
+            "end": 147
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "~$9k MRR, mostly $29-49/mo prosumer plans.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "~$9k MRR, mostly $29-49/mo prosumer plans.",
+          "location": {
+            "start": 963,
+            "end": 1005
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "RETENTION: month-2 retention around 55%.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "RETENTION: month-2 retention around 55%.",
+          "location": {
+            "start": 1352,
+            "end": 1392
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Move upmarket to teams with proper pricing and show net revenue retention > 110%.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Move upmarket to teams with proper pricing and show net revenue retention > 110%.",
+          "location": {
+            "start": 1694,
+            "end": 1775
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Demonstrate month-3 retention improving materially.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Demonstrate month-3 retention improving materially.",
+          "location": {
+            "start": 1778,
+            "end": 1829
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "A reliability/observability story so automations are trustworthy.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "A reliability/observability story so automations are trustworthy.",
+          "location": {
+            "start": 1832,
+            "end": 1897
+          }
+        }
+      ],
+      "activeCompanyId": "flow",
+      "trace": {
+        "plan": {
+          "intent": "meeting_preparation",
+          "companyIds": [
+            "flow"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Prepare me for a follow-up meeting with FlowAI: what do we know, why are we tracking it, and what should I ask?"
+        },
+        "evidenceIds": [
+          "company:flow",
+          "doc:flow-doc:0-2013"
+        ],
+        "elapsedMs": 0,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 6
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "Status, Traction, Concerns and lean-in excerpts support the facts; missing updates are qualified and the final question is labeled suggested."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 6
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "flowai_followup",
+      "question": "Who founded it, and what would make us lean in?",
+      "expected": [
+        "As continuation of previous turn, it means FlowAI.",
+        "Founders Grace Lin (CEO) and Raj Patel (CTO).",
+        "Team/upmarket pricing and NRR >110%, improving month-3 retention, and reliability/observability.",
+        "Clarification is safer than guessing but falls short of conversational continuity."
+      ],
+      "before": {
+        "facts": "wrong_company",
+        "coverage": "fails_intended_question",
+        "evidence": "wrong_entity_sources",
+        "taskFit": "confident_wrong_entity",
+        "notes": [
+          "After FlowAI meeting prep, answers CloudBrain founders PriyaNair/MarcusFeld rather than GraceLin/RajPatel.",
+          "Current UI sends only latest message, so server lacks conversational antecedent."
+        ]
+      },
+      "answer": "Recorded fact: Grace Lin is CEO and Raj Patel is CTO. [doc:flow-doc:0-2013]\n\nRecorded fact: Move upmarket to teams with proper pricing and NRR above 110%. [doc:flow-doc:0-2013]\n\nRecorded fact: Improve month-3 retention materially; no numerical month-3 target is recorded. [doc:flow-doc:0-2013]\n\nRecorded fact: Establish reliability and observability so automations are trustworthy. [doc:flow-doc:0-2013]",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "- Grace Lin, CEO. Ex-product manager at a big workflow/automation company. Sharp on GTM, very fast.\n- Raj Patel, CTO. Solid engineer, built the v1 mostly solo.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "- Grace Lin, CEO. Ex-product manager at a big workflow/automation company. Sharp on GTM, very fast.\n- Raj Patel, CTO. Solid engineer, built the v1 mostly solo.",
+          "location": {
+            "start": 161,
+            "end": 320
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Move upmarket to teams with proper pricing and show net revenue retention > 110%.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Move upmarket to teams with proper pricing and show net revenue retention > 110%.",
+          "location": {
+            "start": 1694,
+            "end": 1775
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Demonstrate month-3 retention improving materially.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Demonstrate month-3 retention improving materially.",
+          "location": {
+            "start": 1778,
+            "end": 1829
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "A reliability/observability story so automations are trustworthy.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "A reliability/observability story so automations are trustworthy.",
+          "location": {
+            "start": 1832,
+            "end": 1897
+          }
+        }
+      ],
+      "activeCompanyId": "flow",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "flow"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Who founded it, and what would make us lean in?\nResolved company reference: FlowAI."
+        },
+        "evidenceIds": [
+          "company:flow",
+          "doc:flow-doc:0-2013"
+        ],
+        "elapsedMs": 0,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 6
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "User antecedent resolves FlowAI; both founder lines and all three lean-in conditions appear in the complete notes. No numeric month-3 target is supplied."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 4
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "temporal_update",
+      "question": "What changed in FlowAI's retention after our October 2025 meeting?",
+      "expected": [
+        "No later source document exists in current corpus.",
+        "Historical month-2 retention was around 55%.",
+        "Do not invent improvement or deterioration after the meeting."
+      ],
+      "before": {
+        "facts": "correct_core_abstention",
+        "coverage": "complete",
+        "evidence": "unrelated_sources_and_unclear_inline_reference",
+        "taskFit": "overlong",
+        "notes": [
+          "Correctly says no later retention update is recorded.",
+          "All5 companies are cited for a FlowAI-only question."
+        ]
+      },
+      "answer": "Recorded fact: October 2025 month-2 retention was around 55%. [doc:flow-doc:0-2013]\n\nNot recorded / uncertain: No later retention source is retained. This does not establish whether performance changed in the real world.",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "RETENTION: month-2 retention around 55%.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "RETENTION: month-2 retention around 55%.",
+          "location": {
+            "start": 1352,
+            "end": 1392
+          }
+        }
+      ],
+      "activeCompanyId": "flow",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "flow"
+          ],
+          "filters": {},
+          "standaloneQuestion": "What changed in FlowAI's retention after our October 2025 meeting?"
+        },
+        "evidenceIds": [
+          "company:flow",
+          "doc:flow-doc:0-2013"
+        ],
+        "elapsedMs": 0,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 2
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "Only the October notes are retained; month-2 baseline is cited and real-world change is left unknown."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 1
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "retention_comparison",
+      "question": "Compare CodeFlow AI's and FlowAI's adoption or retention concerns and our decisions on each.",
+      "expected": [
+        "CodeFlow AI: Passed; weak team adoption; ~12% monthly paid logo churn.",
+        "FlowAI: Tracking; ~55% month-2 retention; pricing/reliability concerns.",
+        "Do not equate monthly churn and month-2 cohort retention."
+      ],
+      "before": {
+        "facts": "mixed",
+        "coverage": "main_comparison_present_but_unfinished",
+        "evidence": "unrelated_source_and_unsupported_claim",
+        "taskFit": "overextended_truncated",
+        "notes": [
+          "Core decisions,12% monthly churn and55% month2 retention are correct.",
+          "Asserts month3 retention still low without a recorded value; later admits missing data.",
+          "Response ends mid-list. API does not return finish_reason, so exact cause of truncation is unverified."
+        ]
+      },
+      "answer": "Recorded fact: CodeFlow AI was Passed; its founding team was excellent. [doc:code-doc:0-2561]\n\nRecorded fact: CodeFlow AI: approximately 12% monthly paid logo churn, September 2025. [doc:code-doc:0-2561]\n\nRecorded fact: FlowAI: Tracking, with approximately 55% month-2 retention and pricing/reliability concerns, October 2025. [doc:flow-doc:0-2013]\n\nInterpretation: Monthly paid logo churn and month-2 cohort retention measure different things and are not interchangeable. [doc:flow-doc:0-2013] [doc:code-doc:0-2561]",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "code",
+          "companyName": "CodeFlow AI",
+          "snippet": "**PASS.** The team is excellent",
+          "evidenceId": "doc:code-doc:0-2561",
+          "documentId": "code-doc",
+          "documentName": "codeflow-ai-memo.md",
+          "documentType": "memo",
+          "chunkId": null,
+          "sourceDate": "September 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "**PASS.** The team is excellent",
+          "location": {
+            "start": 2191,
+            "end": 2222
+          }
+        },
+        {
+          "companyId": "code",
+          "companyName": "CodeFlow AI",
+          "snippet": "**logo churn is ~12% monthly** on the paid tier.",
+          "evidenceId": "doc:code-doc:0-2561",
+          "documentId": "code-doc",
+          "documentName": "codeflow-ai-memo.md",
+          "documentType": "memo",
+          "chunkId": null,
+          "sourceDate": "September 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "**logo churn is ~12% monthly** on the paid tier.",
+          "location": {
+            "start": 1186,
+            "end": 1234
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "- PRICING: $29-49/mo is too low for the value and too high for hobbyists — stuck in the middle. No clear path to expansion revenue yet. They haven't figured out seat/usage pricing.\n- RETENTION: month-2 retention around 55%. People build one automation and drift. Needs to become a system-of-record habit.\n- Reliability: when an automation silently fails, trust evaporates. Error handling / observability is thin.\n- Crowded \"AI automation\" space; differentiation today is UX, which is copyable.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "- PRICING: $29-49/mo is too low for the value and too high for hobbyists — stuck in the middle. No clear path to expansion revenue yet. They haven't figured out seat/usage pricing.\n- RETENTION: month-2 retention around 55%. People build one automation and drift. Needs to become a system-of-record habit.\n- Reliability: when an automation silently fails, trust evaporates. Error handling / observability is thin.\n- Crowded \"AI automation\" space; differentiation today is UX, which is copyable.",
+          "location": {
+            "start": 1169,
+            "end": 1662
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "RETENTION: month-2 retention around 55%.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "RETENTION: month-2 retention around 55%.",
+          "location": {
+            "start": 1352,
+            "end": 1392
+          }
+        }
+      ],
+      "activeCompanyId": null,
+      "trace": {
+        "plan": {
+          "intent": "comparison",
+          "companyIds": [
+            "code",
+            "flow"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Compare CodeFlow AI's and FlowAI's adoption or retention concerns and our decisions on each."
+        },
+        "evidenceIds": [
+          "company:code",
+          "company:flow",
+          "doc:code-doc:0-2561",
+          "doc:flow-doc:0-2013"
+        ],
+        "elapsedMs": 1,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 6
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "Each metric has its own source excerpt; the interpretation cites both measurement definitions and does not equate monthly churn with cohort retention."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 4
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "followup_explicit_control",
+      "question": "Who founded FlowAI, and what changes were recorded as necessary before we would lean in? Give only the founders and the recorded conditions.",
+      "expected": [
+        "Grace Lin (CEO) and Raj Patel (CTO).",
+        "Upmarket/team pricing, NRR >110%, improved month-3 retention, reliability/observability.",
+        "This tests explicit reference resolution, not an implemented product change."
+      ],
+      "before": {
+        "facts": "correct_founders_false_absence_of_conditions",
+        "coverage": "incomplete",
+        "evidence": "missed_evidence_and_unrelated_sources",
+        "taskFit": "concise_but_incomplete",
+        "notes": [
+          "Explicitly namingFlowAI restores correct founders.",
+          "Still claims no recorded conditions despite What would make us lean in section in source."
+        ]
+      },
+      "answer": "Recorded fact: Grace Lin is CEO and Raj Patel is CTO. [doc:flow-doc:0-2013]\n\nRecorded fact: Move upmarket to teams with proper pricing and NRR above 110%. [doc:flow-doc:0-2013]\n\nRecorded fact: Improve month-3 retention materially; no numerical month-3 target is recorded. [doc:flow-doc:0-2013]\n\nRecorded fact: Establish reliability and observability so automations are trustworthy. [doc:flow-doc:0-2013]",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "- Grace Lin, CEO. Ex-product manager at a big workflow/automation company. Sharp on GTM, very fast.\n- Raj Patel, CTO. Solid engineer, built the v1 mostly solo.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "- Grace Lin, CEO. Ex-product manager at a big workflow/automation company. Sharp on GTM, very fast.\n- Raj Patel, CTO. Solid engineer, built the v1 mostly solo.",
+          "location": {
+            "start": 161,
+            "end": 320
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Move upmarket to teams with proper pricing and show net revenue retention > 110%.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Move upmarket to teams with proper pricing and show net revenue retention > 110%.",
+          "location": {
+            "start": 1694,
+            "end": 1775
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Demonstrate month-3 retention improving materially.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Demonstrate month-3 retention improving materially.",
+          "location": {
+            "start": 1778,
+            "end": 1829
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "A reliability/observability story so automations are trustworthy.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "A reliability/observability story so automations are trustworthy.",
+          "location": {
+            "start": 1832,
+            "end": 1897
+          }
+        }
+      ],
+      "activeCompanyId": "flow",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "flow"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Who founded FlowAI, and what changes were recorded as necessary before we would lean in? Give only the founders and the recorded conditions."
+        },
+        "evidenceIds": [
+          "company:flow",
+          "doc:flow-doc:0-2013"
+        ],
+        "elapsedMs": 0,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 6
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "Complete FlowAI notes include both founders and each lean-in condition, including the document tail missed by the old pipeline."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 4
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    },
+    {
+      "id": "flowai_full_source_control",
+      "question": "Who founded FlowAI, and what changes were recorded as necessary before we would lean in? Give only the founders and the recorded conditions.",
+      "before": {
+        "facts": "restores_recorded_conditions_with_minor_wording_caveat",
+        "notes": [
+          "Returns GraceLin/RajPatel and all three recorded condition groups.",
+          "Source gives no numerical month3-retention target. The wording beyond current55% month2 rate should not be interpreted as a required month3 threshold.",
+          "Compared with explicit-name API control, this supports an evidence-selection/context-use bottleneck; it does not isolate retrieval alone because complete API context/model telemetry was unavailable and samples were not repeated."
+        ]
+      },
+      "answer": "Recorded fact: Grace Lin is CEO and Raj Patel is CTO. [doc:flow-doc:0-2013]\n\nRecorded fact: Move upmarket to teams with proper pricing and NRR above 110%. [doc:flow-doc:0-2013]\n\nRecorded fact: Improve month-3 retention materially; no numerical month-3 target is recorded. [doc:flow-doc:0-2013]\n\nRecorded fact: Establish reliability and observability so automations are trustworthy. [doc:flow-doc:0-2013]",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "- Grace Lin, CEO. Ex-product manager at a big workflow/automation company. Sharp on GTM, very fast.\n- Raj Patel, CTO. Solid engineer, built the v1 mostly solo.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "- Grace Lin, CEO. Ex-product manager at a big workflow/automation company. Sharp on GTM, very fast.\n- Raj Patel, CTO. Solid engineer, built the v1 mostly solo.",
+          "location": {
+            "start": 161,
+            "end": 320
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Move upmarket to teams with proper pricing and show net revenue retention > 110%.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Move upmarket to teams with proper pricing and show net revenue retention > 110%.",
+          "location": {
+            "start": 1694,
+            "end": 1775
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Demonstrate month-3 retention improving materially.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Demonstrate month-3 retention improving materially.",
+          "location": {
+            "start": 1778,
+            "end": 1829
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "A reliability/observability story so automations are trustworthy.",
+          "evidenceId": "doc:flow-doc:0-2013",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "A reliability/observability story so automations are trustworthy.",
+          "location": {
+            "start": 1832,
+            "end": 1897
+          }
+        }
+      ],
+      "activeCompanyId": "flow",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "flow"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Who founded FlowAI, and what changes were recorded as necessary before we would lean in? Give only the founders and the recorded conditions."
+        },
+        "evidenceIds": [
+          "company:flow",
+          "doc:flow-doc:0-2013"
+        ],
+        "elapsedMs": 1,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "fixture-provider",
+          "returnedModel": "fixture-provider-v1",
+          "finishReason": "stop",
+          "usage": {
+            "promptTokens": 100,
+            "completionTokens": 100,
+            "totalTokens": 200
+          }
+        }
+      },
+      "evaluation": {
+        "correctness": {
+          "status": "pass",
+          "missingChecks": []
+        },
+        "completeness": {
+          "status": "pass",
+          "checkedFields": 6
+        },
+        "groundedness": {
+          "provenance": "pass",
+          "semanticSupport": "assistant_source_review_of_scripted_answer",
+          "sourceReview": "This now traverses normal named-company source selection using a scripted provider; it is not a repeated live causal experiment."
+        },
+        "citationUsefulness": {
+          "status": "pass",
+          "usedDocumentExcerpts": 4
+        },
+        "taskFit": {
+          "status": "pass",
+          "statusReturned": "complete"
+        },
+        "caveat": "Scripted provider: verifies routing, source availability, provenance and response contracts; does not score model quality."
+      }
+    }
+  ],
+  "limitations": [
+    "No live generation or database testing.",
+    "A fixture pass establishes orchestration behavior, not live LLM correctness.",
+    "Semantic source support needs independent review; no aggregate accuracy claim."
+  ]
+}
