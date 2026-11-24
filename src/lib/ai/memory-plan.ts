@@ -65,7 +65,24 @@ function period(value: string): { start: Date; end: Date } | null {
 
 const DATE_VALUE = String.raw`(?:\d{4}-\d{2}-\d{2}|[A-Za-z]+\s+\d{4}|\d{4})(?![\w/-])`;
 
+/** Unsupported date complements must never become their positive range. */
+function hasNegatedDateConstraint(text: string): boolean {
+  const normalized = text.replace(/[’‘ʼ]/g, "'");
+  const operators = String.raw`(?:between|from|in|during|within|on|after|before|since|through|until)`;
+  // Link a negation to its temporal predicate, rather than to an unrelated
+  // instruction elsewhere in the request (for example, "do not infer facts").
+  const predicate = String.raw`(?:(?:[a-z]+ly|ever|yet|sometime|any|a|an|the|last|first|most|recent|recorded|interaction|interactions|meeting|meetings|date|dates|have|having|had|be|been|was|were|is|are|met|meet|interact|interacted|happen|happened|occur|occurred|fall|falls|fell|take|taken|place|at|with|as|all)\s+)*`;
+  if (new RegExp(String.raw`\b(?:not|never|neither|without|cannot|[a-z]+n't)\s+${predicate}${operators}\b`, "i").test(normalized)) {
+    return true;
+  }
+  const excludedRange = String.raw`\b(?:outside|excluding|except)\s+(?:(?:of|the|a|an|that|this|same|last|recorded|interaction)\s+)*(?:${operators}\b|(?:date\s+)?(?:range|period|window)\b|${DATE_VALUE})`;
+  return new RegExp(excludedRange, "i").test(normalized);
+}
+
 function dateFilters(text: string): { filters: MemoryFilters; error?: string } {
+  if (hasNegatedDateConstraint(text)) {
+    return { filters: {}, error: "Negated interaction date filters are not supported. Which included date range should I use for the last recorded interaction?" };
+  }
   const filters: MemoryFilters = {};
   const invalidDate = "Which valid date or month and year should I use for the last recorded interaction?";
   let invalid = false;
