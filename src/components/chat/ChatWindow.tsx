@@ -143,11 +143,6 @@ function Message({ msg }: { msg: Msg }) {
       >
         {msg.content}
       </div>
-      {msg.status === "incomplete" && (
-        <p className="mt-2 pl-4 text-[13px] text-muted-foreground" role="status">
-          This answer could not be completed. Please retry or narrow the question.
-        </p>
-      )}
       {msg.citations && msg.citations.length > 0 && (
         <Citations citations={msg.citations} />
       )}

@@ -1,0 +1,29 @@
+{
+  "description": "Sanitized final-answer replay captured from actual Groq GPT-OSS-120B responses using the verified fictional FlowAI demo note; IDs normalized to test fixtures. No reasoning text or credentials retained.",
+  "cases": [
+    {
+      "id": "reasoning_budget_exhausted",
+      "finishReason": "length",
+      "text": "{\"blocks\": [{\"kind\": \"fact\", \"text\": \"FlowAI operates in the SaaS AI workflow automation sector.\", \"supports\": [{\"evidenceId\": \"doc:flow-doc:0-2013\", \"quote\": \"Sector: SaaS (AI workflow automation)\"}]}, {\"kind\": \"fact\", \"text\": \"The firm’s recorded decision is to track FlowAI and not invest at this time.\", \"supports\": [{\"evidenceId\": \"company:flow\", \"quote\": \"Recorded decision: Tracking\"}]}, {\"kind\": \"interpretation\", \"text\": \"The tracking decision is driven by pricing mis‑alignment, low retention, reliability concerns, and a crowded market with copyable UX.\", \"supports\": [{\"evidenceId\": \"company:flow\", \"quote\": \"Recorded decision reason: Pricing is mis‑aligned and lacks an expansion path, retention is low, reliability concerns exist, and the market is crowded with copyable UX, so we are tracking but not investing now.\"}]}]}",
+      "usage": {
+        "promptTokens": 1455,
+        "completionTokens": 1800,
+        "totalTokens": 3255,
+        "reasoningTokens": 1453
+      },
+      "expectedFailure": "completion_length"
+    },
+    {
+      "id": "noncontiguous_quotes",
+      "finishReason": "stop",
+      "text": "{\"blocks\": [{\"kind\": \"fact\", \"text\": \"In October 2025 the founders described FlowAI as \\\"Zapier with an AI brain\\\" that lets users describe outcomes in plain English and connects to about 80 SaaS apps.\", \"supports\": [{\"evidenceId\": \"doc:flow-doc:0-2013\", \"quote\": \"FlowAI is \\\"Zapier with an AI brain.\\\" ... Connects to ~80 SaaS apps today.\"}]}, {\"kind\": \"fact\", \"text\": \"The company reported roughly $9k MRR from $29‑$49 per month prosumer plans, with 1,300 sign‑ups and about 250 activated users, growing ~10% month‑over‑month.\", \"supports\": [{\"evidenceId\": \"doc:flow-doc:0-2013\", \"quote\": \"~$9k MRR, mostly $29-49/mo prosumer plans. 1,300 signups, ~250 activated ... ~10% MoM\"}]}]}",
+      "usage": {
+        "promptTokens": 1455,
+        "completionTokens": 588,
+        "totalTokens": 2043,
+        "reasoningTokens": 43
+      },
+      "expectedFailure": "quote_mismatch"
+    }
+  ]
+}

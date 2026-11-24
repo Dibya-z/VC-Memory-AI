@@ -68,7 +68,13 @@ export function scriptedAnswer(claims: FixtureClaim[], evidence: MemoryEvidence[
   }) };
 }
 export function evidenceFromPrompt(prompt: string): MemoryEvidence[] {
-  return JSON.parse(prompt).evidence as MemoryEvidence[];
+  const input = JSON.parse(prompt);
+  return (input.evidence as MemoryEvidence[]).map((source) => {
+    if (typeof source.text === "string") return source;
+    const passages = (input.passages as { evidenceId: string; start: number; text: string }[])
+      .filter((passage) => passage.evidenceId === source.id).sort((a, b) => a.start - b.start);
+    return { ...source, text: passages.map((passage) => passage.text).join("") };
+  });
 }
 export function fixtureDependencies(claims: FixtureClaim[], options: {
   companies?: MemoryCompany[]; documents?: MemoryDocument[];

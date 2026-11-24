@@ -1,0 +1,528 @@
+{
+  "schemaVersion": 1,
+  "mode": "public_fixture_real_provider",
+  "databaseAccessed": false,
+  "databaseWrites": 0,
+  "configuredModel": "openai/gpt-oss-120b",
+  "corpusFingerprint": "3e7dab314148d280f44c6af28ca483d67fcd6bec25daaf9891280eefbb889f5f",
+  "pacingMs": 21000,
+  "maxOrchestrationRequests": 4,
+  "maxProviderRequests": 8,
+  "providerRequests": 3,
+  "runtimeCasesPassed": 4,
+  "runtimeCasesFailed": 0,
+  "cases": [
+    {
+      "id": "meeting",
+      "repetition": 1,
+      "request": {
+        "message": "Prep me for a meeting with FlowAI."
+      },
+      "providerRequests": 1,
+      "answer": "Recorded fact: FlowAI is recorded as a SaaS company in the AI workflow automation sector and the current decision status is TRACKING (not investing now, stay close). [P1] [P2]\n\nRecorded fact: The founders met with the firm in October 2025; Grace Lin is the CEO (formerly a product manager at a large workflow/automation company) and Raj Patel is the CTO (built the v1 mostly solo). [P3]\n\nRecorded fact: FlowAI’s product is described as “Zapier with an AI brain,” allowing users to describe desired outcomes in plain English and automatically assembling workflows across roughly 80 SaaS apps. [P4]\n\nRecorded fact: As of the October 2025 notes, FlowAI had approximately $9k MRR from $29‑49/month prosumer plans, 1,300 sign‑ups with about 250 activated users, and month‑over‑month growth of roughly 10%. [P6]\n\nInterpretation: The firm is tracking FlowAI because of pricing ambiguity, modest retention (month‑2 retention ~55%), reliability concerns, and a crowded AI automation market, while seeing potential if the company moves upmarket, improves net revenue retention above 110%, and strengthens reliability. [P7] [P8]\n\nNot recorded / uncertain: The records do not include FlowAI’s total team size, cash runway, or detailed financial projections.\n\nSuggested diligence question: Ask the founders to outline a revised pricing model that targets enterprise teams and clarifies seat‑based or usage‑based revenue streams.\n\nSuggested diligence question: Request data on month‑3 and longer‑term retention trends and any product changes aimed at increasing habit formation.\n\nSuggested diligence question: Probe the roadmap for reliability and observability features that would reduce silent automation failures and build trust.",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Current company record: FlowAI\nRecorded decision: Tracking\nSector: SaaS\nLast recorded interaction: 2025-10-11T00:00:00.000Z\nRecord updated at: 2026-11-24T00:00:00.000Z (record metadata, not a source date)",
+          "evidenceId": "P1",
+          "documentId": null,
+          "documentName": null,
+          "documentType": null,
+          "chunkId": null,
+          "sourceDate": null,
+          "uploadedAt": null,
+          "quote": "Current company record: FlowAI\nRecorded decision: Tracking\nSector: SaaS\nLast recorded interaction: 2025-10-11T00:00:00.000Z\nRecord updated at: 2026-11-24T00:00:00.000Z (record metadata, not a source date)",
+          "location": {
+            "start": 0,
+            "end": 204
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "FlowAI — Founder meeting notes\nMet: October 2025\nSector: SaaS (AI workflow automation)\nStage: Seed\nStatus: TRACKING (not investing now, stay close)\n\n",
+          "evidenceId": "P2",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "FlowAI — Founder meeting notes\nMet: October 2025\nSector: SaaS (AI workflow automation)\nStage: Seed\nStatus: TRACKING (not investing now, stay close)\n\n",
+          "location": {
+            "start": 0,
+            "end": 149
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Who we met:\n- Grace Lin, CEO. Ex-product manager at a big workflow/automation company. Sharp on GTM, very fast.\n- Raj Patel, CTO. Solid engineer, built the v1 mostly solo.\n\n",
+          "evidenceId": "P3",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Who we met:\n- Grace Lin, CEO. Ex-product manager at a big workflow/automation company. Sharp on GTM, very fast.\n- Raj Patel, CTO. Solid engineer, built the v1 mostly solo.\n\n",
+          "location": {
+            "start": 149,
+            "end": 322
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "What they do:\nFlowAI is \"Zapier with an AI brain.\" Instead of building automations step by step, you describe the outcome in plain English (\"when a new enterprise lead comes in, enrich it, score it, and route hot ones to the right rep on Slack\") and FlowAI assembles and runs the workflow. Connects to ~80 SaaS apps today.\n\n",
+          "evidenceId": "P4",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "What they do:\nFlowAI is \"Zapier with an AI brain.\" Instead of building automations step by step, you describe the outcome in plain English (\"when a new enterprise lead comes in, enrich it, score it, and route hot ones to the right rep on Slack\") and FlowAI assembles and runs the workflow. Connects to ~80 SaaS apps today.\n\n",
+          "location": {
+            "start": 322,
+            "end": 646
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Traction:\n- ~$9k MRR, mostly $29-49/mo prosumer plans.\n- 1,300 signups, ~250 activated (built at least one live automation).\n- Growth is okay but not explosive: ~10% MoM.\n\n",
+          "evidenceId": "P6",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Traction:\n- ~$9k MRR, mostly $29-49/mo prosumer plans.\n- 1,300 signups, ~250 activated (built at least one live automation).\n- Growth is okay but not explosive: ~10% MoM.\n\n",
+          "location": {
+            "start": 951,
+            "end": 1123
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Concerns (why we're tracking, not investing):\n- PRICING: $29-49/mo is too low for the value and too high for hobbyists — stuck in the middle. No clear path to expansion revenue yet. They haven't figured out seat/usage pricing.\n- RETENTION: month-2 retention around 55%. People build one automation and drift. Needs to become a system-of-record habit.\n- Reliability: when an automation silently fails, trust evaporates. Error handling / observability is thin.\n- Crowded \"AI automation\" space; differentiation today is UX, which is copyable.\n\n",
+          "evidenceId": "P7",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Concerns (why we're tracking, not investing):\n- PRICING: $29-49/mo is too low for the value and too high for hobbyists — stuck in the middle. No clear path to expansion revenue yet. They haven't figured out seat/usage pricing.\n- RETENTION: month-2 retention around 55%. People build one automation and drift. Needs to become a system-of-record habit.\n- Reliability: when an automation silently fails, trust evaporates. Error handling / observability is thin.\n- Crowded \"AI automation\" space; differentiation today is UX, which is copyable.\n\n",
+          "location": {
+            "start": 1123,
+            "end": 1664
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "What would make us lean in:\n- Move upmarket to teams with proper pricing and show net revenue retention > 110%.\n- Demonstrate month-3 retention improving materially.\n- A reliability/observability story so automations are trustworthy.\n\n",
+          "evidenceId": "P8",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "What would make us lean in:\n- Move upmarket to teams with proper pricing and show net revenue retention > 110%.\n- Demonstrate month-3 retention improving materially.\n- A reliability/observability story so automations are trustworthy.\n\n",
+          "location": {
+            "start": 1664,
+            "end": 1899
+          }
+        }
+      ],
+      "activeCompanyId": "flow",
+      "trace": {
+        "plan": {
+          "intent": "meeting_preparation",
+          "companyIds": [
+            "flow"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Prep me for a meeting with FlowAI."
+        },
+        "evidenceIds": [
+          "company:flow",
+          "doc:flow-doc:0-2013"
+        ],
+        "elapsedMs": 2402,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "openai/gpt-oss-120b",
+          "returnedModel": "openai/gpt-oss-120b",
+          "finishReason": "stop",
+          "attempts": [
+            {
+              "attempt": 1,
+              "configuredModel": "openai/gpt-oss-120b",
+              "returnedModel": "openai/gpt-oss-120b",
+              "finishReason": "stop",
+              "maxCompletionTokens": 3200,
+              "usage": {
+                "promptTokens": 2147,
+                "completionTokens": 699,
+                "totalTokens": 2846,
+                "reasoningTokens": 82
+              }
+            }
+          ],
+          "usage": {
+            "promptTokens": 2147,
+            "completionTokens": 699,
+            "totalTokens": 2846,
+            "reasoningTokens": 82
+          }
+        },
+        "passageIds": [
+          "P1",
+          "P2",
+          "P3",
+          "P4",
+          "P5",
+          "P6",
+          "P7",
+          "P8",
+          "P9"
+        ]
+      },
+      "checks": {
+        "expectedStatus": true,
+        "correctCompanyScope": true,
+        "canonicalSourceQuotes": true,
+        "citationsPresentWhenExpected": true,
+        "expectedProviderBehavior": true,
+        "expectedFieldsPresent": true
+      },
+      "runtimeContractPassed": true,
+      "diagnosticContent": {
+        "recordedPositionMentioned": true,
+        "unknownsLabeled": true,
+        "suggestionsLabeled": true
+      },
+      "humanSourceSupportReviewRequired": true
+    },
+    {
+      "id": "facts",
+      "repetition": 1,
+      "request": {
+        "message": "What are LedgerLite's recorded ARR, net revenue retention, and platform customers?"
+      },
+      "providerRequests": 1,
+      "answer": "Recorded fact: LedgerLite recorded $1.8M ARR as of July 2025. [P8]\n\nRecorded fact: LedgerLite recorded net revenue retention of 134% as of July 2025. [P8]\n\nRecorded fact: LedgerLite recorded 22 platform customers as of July 2025. [P8]",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "ledger",
+          "companyName": "LedgerLite",
+          "snippet": "## Traction\n- $1.8M ARR, growing 18% month-over-month for the last 6 months.\n- 22 platform customers, including two that each contribute >$200k ARR.\n- Net revenue retention of 134%.\n- Gross margin ~82%.\n\n",
+          "evidenceId": "P8",
+          "documentId": "ledger-doc",
+          "documentName": "ledgerlite-memo.md",
+          "documentType": "memo",
+          "chunkId": null,
+          "sourceDate": "July 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "## Traction\n- $1.8M ARR, growing 18% month-over-month for the last 6 months.\n- 22 platform customers, including two that each contribute >$200k ARR.\n- Net revenue retention of 134%.\n- Gross margin ~82%.\n\n",
+          "location": {
+            "start": 1187,
+            "end": 1391
+          }
+        }
+      ],
+      "activeCompanyId": "ledger",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "ledger"
+          ],
+          "filters": {},
+          "standaloneQuestion": "What are LedgerLite's recorded ARR, net revenue retention, and platform customers?"
+        },
+        "evidenceIds": [
+          "company:ledger",
+          "doc:ledger-doc:0-2479"
+        ],
+        "elapsedMs": 914,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "openai/gpt-oss-120b",
+          "returnedModel": "openai/gpt-oss-120b",
+          "finishReason": "stop",
+          "attempts": [
+            {
+              "attempt": 1,
+              "configuredModel": "openai/gpt-oss-120b",
+              "returnedModel": "openai/gpt-oss-120b",
+              "finishReason": "stop",
+              "maxCompletionTokens": 2200,
+              "usage": {
+                "promptTokens": 2442,
+                "completionTokens": 211,
+                "totalTokens": 2653,
+                "reasoningTokens": 37
+              }
+            }
+          ],
+          "usage": {
+            "promptTokens": 2442,
+            "completionTokens": 211,
+            "totalTokens": 2653,
+            "reasoningTokens": 37
+          }
+        },
+        "passageIds": [
+          "P1",
+          "P2",
+          "P3",
+          "P4",
+          "P5",
+          "P6",
+          "P7",
+          "P8",
+          "P9",
+          "P10",
+          "P11",
+          "P12",
+          "P13"
+        ]
+      },
+      "checks": {
+        "expectedStatus": true,
+        "correctCompanyScope": true,
+        "canonicalSourceQuotes": true,
+        "citationsPresentWhenExpected": true,
+        "expectedProviderBehavior": true,
+        "expectedFieldsPresent": true
+      },
+      "runtimeContractPassed": true,
+      "diagnosticContent": {
+        "arrMentioned": true,
+        "nrrMentioned": true,
+        "customersMentioned": true
+      },
+      "humanSourceSupportReviewRequired": true
+    },
+    {
+      "id": "followup",
+      "repetition": 1,
+      "request": {
+        "message": "Who founded it, and what would make us lean in?",
+        "history": [
+          {
+            "role": "user",
+            "content": "Prepare me for a follow-up meeting with FlowAI."
+          }
+        ]
+      },
+      "providerRequests": 1,
+      "answer": "Recorded fact: The recorded decision for FlowAI is \"Tracking\" (stay close but not investing now). [P1] [P2]\n\nInterpretation: The firm is tracking because of pricing uncertainty, modest retention, reliability concerns, and a crowded AI‑automation market. [P7]\n\nRecorded fact: What would make the firm lean in includes moving up‑market with proper pricing and net revenue retention above 110%, improving month‑3 retention, and adding a reliability/observability story. [P8]\n\nNot recorded / uncertain: The specific founder of FlowAI is not recorded; the notes list Grace Lin (CEO) and Raj Patel (CTO) as meeting participants but do not state who founded the company.",
+      "status": "complete",
+      "citations": [
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Current company record: FlowAI\nRecorded decision: Tracking\nSector: SaaS\nLast recorded interaction: 2025-10-11T00:00:00.000Z\nRecord updated at: 2026-11-24T00:00:00.000Z (record metadata, not a source date)",
+          "evidenceId": "P1",
+          "documentId": null,
+          "documentName": null,
+          "documentType": null,
+          "chunkId": null,
+          "sourceDate": null,
+          "uploadedAt": null,
+          "quote": "Current company record: FlowAI\nRecorded decision: Tracking\nSector: SaaS\nLast recorded interaction: 2025-10-11T00:00:00.000Z\nRecord updated at: 2026-11-24T00:00:00.000Z (record metadata, not a source date)",
+          "location": {
+            "start": 0,
+            "end": 204
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "FlowAI — Founder meeting notes\nMet: October 2025\nSector: SaaS (AI workflow automation)\nStage: Seed\nStatus: TRACKING (not investing now, stay close)\n\n",
+          "evidenceId": "P2",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "FlowAI — Founder meeting notes\nMet: October 2025\nSector: SaaS (AI workflow automation)\nStage: Seed\nStatus: TRACKING (not investing now, stay close)\n\n",
+          "location": {
+            "start": 0,
+            "end": 149
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "Concerns (why we're tracking, not investing):\n- PRICING: $29-49/mo is too low for the value and too high for hobbyists — stuck in the middle. No clear path to expansion revenue yet. They haven't figured out seat/usage pricing.\n- RETENTION: month-2 retention around 55%. People build one automation and drift. Needs to become a system-of-record habit.\n- Reliability: when an automation silently fails, trust evaporates. Error handling / observability is thin.\n- Crowded \"AI automation\" space; differentiation today is UX, which is copyable.\n\n",
+          "evidenceId": "P7",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "Concerns (why we're tracking, not investing):\n- PRICING: $29-49/mo is too low for the value and too high for hobbyists — stuck in the middle. No clear path to expansion revenue yet. They haven't figured out seat/usage pricing.\n- RETENTION: month-2 retention around 55%. People build one automation and drift. Needs to become a system-of-record habit.\n- Reliability: when an automation silently fails, trust evaporates. Error handling / observability is thin.\n- Crowded \"AI automation\" space; differentiation today is UX, which is copyable.\n\n",
+          "location": {
+            "start": 1123,
+            "end": 1664
+          }
+        },
+        {
+          "companyId": "flow",
+          "companyName": "FlowAI",
+          "snippet": "What would make us lean in:\n- Move upmarket to teams with proper pricing and show net revenue retention > 110%.\n- Demonstrate month-3 retention improving materially.\n- A reliability/observability story so automations are trustworthy.\n\n",
+          "evidenceId": "P8",
+          "documentId": "flow-doc",
+          "documentName": "flowai-notes.txt",
+          "documentType": "notes",
+          "chunkId": null,
+          "sourceDate": "October 2025",
+          "uploadedAt": "2026-11-24T00:00:00.000Z",
+          "quote": "What would make us lean in:\n- Move upmarket to teams with proper pricing and show net revenue retention > 110%.\n- Demonstrate month-3 retention improving materially.\n- A reliability/observability story so automations are trustworthy.\n\n",
+          "location": {
+            "start": 1664,
+            "end": 1899
+          }
+        }
+      ],
+      "activeCompanyId": "flow",
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [
+            "flow"
+          ],
+          "filters": {},
+          "standaloneQuestion": "Who founded it, and what would make us lean in?\nResolved company reference: FlowAI."
+        },
+        "evidenceIds": [
+          "company:flow",
+          "doc:flow-doc:0-2013"
+        ],
+        "elapsedMs": 1049,
+        "evidenceSufficiency": {
+          "sufficient": true,
+          "reason": "Complete available short sources included for each requested company. Missing facts can be identified without inventing values.",
+          "omittedDocuments": 0
+        },
+        "generation": {
+          "configuredModel": "openai/gpt-oss-120b",
+          "returnedModel": "openai/gpt-oss-120b",
+          "finishReason": "stop",
+          "attempts": [
+            {
+              "attempt": 1,
+              "configuredModel": "openai/gpt-oss-120b",
+              "returnedModel": "openai/gpt-oss-120b",
+              "finishReason": "stop",
+              "maxCompletionTokens": 2200,
+              "usage": {
+                "promptTokens": 2152,
+                "completionTokens": 360,
+                "totalTokens": 2512,
+                "reasoningTokens": 90
+              }
+            }
+          ],
+          "usage": {
+            "promptTokens": 2152,
+            "completionTokens": 360,
+            "totalTokens": 2512,
+            "reasoningTokens": 90
+          }
+        },
+        "passageIds": [
+          "P1",
+          "P2",
+          "P3",
+          "P4",
+          "P5",
+          "P6",
+          "P7",
+          "P8",
+          "P9"
+        ]
+      },
+      "checks": {
+        "expectedStatus": true,
+        "correctCompanyScope": true,
+        "canonicalSourceQuotes": true,
+        "citationsPresentWhenExpected": true,
+        "expectedProviderBehavior": true,
+        "expectedFieldsPresent": true
+      },
+      "runtimeContractPassed": true,
+      "diagnosticContent": {
+        "foundersMentioned": true,
+        "conditionsMentioned": true
+      },
+      "humanSourceSupportReviewRequired": true
+    },
+    {
+      "id": "unknown",
+      "repetition": 1,
+      "request": {
+        "message": "Who founded Orchid Robotics, and what is our investment decision on it?"
+      },
+      "providerRequests": 0,
+      "answer": "I couldn't find a company record for Orchid Robotics in memory. Its founders and investment decision are not recorded here.",
+      "status": "insufficient_evidence",
+      "citations": [],
+      "activeCompanyId": null,
+      "trace": {
+        "plan": {
+          "intent": "company_recall",
+          "companyIds": [],
+          "filters": {},
+          "standaloneQuestion": "Who founded Orchid Robotics, and what is our investment decision on it?",
+          "unknownCompany": "Orchid Robotics"
+        },
+        "evidenceIds": [],
+        "elapsedMs": 6
+      },
+      "checks": {
+        "expectedStatus": true,
+        "correctCompanyScope": true,
+        "canonicalSourceQuotes": true,
+        "citationsPresentWhenExpected": true,
+        "expectedProviderBehavior": true,
+        "expectedFieldsPresent": true
+      },
+      "runtimeContractPassed": true,
+      "diagnosticContent": {
+        "unknownCompanyMentioned": true
+      },
+      "humanSourceSupportReviewRequired": true
+    }
+  ],
+  "limitations": [
+    "Small opt-in smoke sample, not a general accuracy benchmark or a latency comparison.",
+    "Status, exact source spans, and diagnostic field checks do not prove semantic entailment of every claim.",
+    "Read answers and cited fictional sources to assess accuracy, completeness, qualifiers, and task fit.",
+    "Only committed fictional fixtures are read; the live database is neither inspected nor modified.",
+    "At most two generator calls per case and eight per run; an exhausted budget produces a failed case rather than more requests."
+  ],
+  "failure": null
+}

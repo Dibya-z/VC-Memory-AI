@@ -17,7 +17,8 @@
     "test:memory": "node --import tsx --test tests/memory-*.test.ts",
     "typecheck": "tsc --noEmit",
     "eval:memory": "node --import tsx scripts/evaluate-memory.ts",
-    "eval:memory:live": "node --import tsx scripts/evaluate-memory-live.ts"
+    "eval:memory:live": "node --import tsx scripts/evaluate-memory-live.ts",
+    "eval:memory:provider": "node --import tsx scripts/evaluate-memory-provider.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

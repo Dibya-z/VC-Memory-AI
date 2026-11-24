@@ -87,18 +87,27 @@ these are not PDF pages or invented source lines. Only explicit source date
 headings supply source dates, preserving month/year precision. Upload time is
 separate metadata. Multiple chunks never create new documents.
 
-Generation returns a strict JSON array of typed blocks. Facts and interpretations
-need exact supporting excerpts; the server creates plain text and citation
-markers. Invalid IDs/excerpts/schema/source descriptions and incomplete finish
-states are withheld with an explicit status. Retrieved instructions have no tool
+Generation returns a JSON object containing typed blocks. New generations select
+server-created passage IDs; the server constructs exact quotes and source
+locations rather than asking the model to copy excerpts. Retained text is sent
+once, with company identity and the real retained source heading attached to
+each passage. GPT-OSS models use strict schema mode and low reasoning effort;
+other configured models use validated JSON mode. One bounded corrective attempt
+can recover an incomplete or invalid answer. Invalid sources and unfinished
+answers remain withheld when recovery fails. Retrieved instructions have no tool
 or query execution path and cannot change schemas, IDs or rendering. Pattern
 checks reject common injection-shaped support; they cannot detect every attack.
 
 Responses include `answer`, `citations`, `activeCompanyId`, `status` and `trace`.
 The trace records validated intent/entities/filters, evidence IDs/coverage,
-exact-query row counts or configured/returned generation model, usage, finish
-reason, and orchestration elapsed time. It does not contain full source text,
+exact-query row counts or configured/returned generation model, usage (including
+reasoning-token counts where supplied), finish reason, bounded attempt metadata,
+sanitized failure categories, and orchestration elapsed time. It does not contain full source text,
 keys, provider error payloads or an automatic private-content log.
+
+See [runtime verification](MEMORY_CHAT_RUNTIME.md) for the generation-budget,
+passage-citation and recovery changes, real-provider checks, and the opt-in
+`npm run eval:memory:provider` command that uses public fixtures without a database.
 
 ## Before and after, with limits
 

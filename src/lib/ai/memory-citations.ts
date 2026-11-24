@@ -1,11 +1,17 @@
 import { z } from "zod";
 import type { Citation } from "@/lib/types";
 import type { MemoryEvidence } from "./memory-contract";
+import type { MemoryPassage } from "./memory-passages";
 
-const supportSchema = z.object({
-  evidenceId: z.string().min(1).max(300),
-  quote: z.string().trim().min(8).max(1200),
-}).strict();
+// Exact-quote support stays accepted for older callers and replay fixtures.
+// New generations select server-created passage IDs and never author quotes.
+const supportSchema = z.union([
+  z.object({ passageId: z.string().min(1).max(40) }).strict(),
+  z.object({
+    evidenceId: z.string().min(1).max(300),
+    quote: z.string().trim().min(8).max(1200),
+  }).strict(),
+]);
 
 export const generatedMemoryAnswerSchema = z.object({
   blocks: z.array(z.object({
@@ -16,6 +22,26 @@ export const generatedMemoryAnswerSchema = z.object({
 }).strict();
 
 export type GeneratedMemoryAnswer = z.infer<typeof generatedMemoryAnswerSchema>;
+
+export type MemoryAnswerValidationCode =
+  | "schema" | "missing_support" | "invalid_evidence_id" | "quote_mismatch"
+  | "unsupported_source_assertion" | "invalid_reference" | "incomplete_text" | "instruction_source";
+
+/** Safe categories/paths are suitable for bounded corrective feedback. */
+export class MemoryAnswerValidationError extends Error {
+  constructor(
+    readonly code: MemoryAnswerValidationCode,
+    message: string,
+    readonly path: (string | number)[] = [],
+  ) {
+    super(message);
+    this.name = "MemoryAnswerValidationError";
+  }
+}
+
+function instructionLike(text: string): boolean {
+  return /\b(?:ignore|disregard|override|replace)\b[^\n]{0,100}\b(?:instructions?|prompts?|rules?|system|developer)\b|\b(?:system|assistant|developer)\s*:/i.test(text);
+}
 
 const LABELS = {
   fact: "Recorded fact",
@@ -30,7 +56,8 @@ const LABELS = {
  * that later memo. Keep this grammar conservative; this is not entailment.
  */
 function isSourceAbsence(text: string, start: number, end: number): boolean {
-  const boundary = /[.!?;:\n]|\b(?:but|however|yet|although|whereas|nevertheless|and)\b/i;
+  // "not yet received" is one negative predicate, not a new clause.
+  const boundary = /[.!?;:\n]|\b(?:but|however|although|whereas|nevertheless|and)\b/i;
   const before = text.slice(0, start).split(boundary).pop()!.trim()
     .replace(/[’‘]/g, "'");
   const after = text.slice(end).split(boundary)[0].trim()
@@ -57,6 +84,15 @@ function isSourceAbsence(text: string, start: number, end: number): boolean {
   return negativePresence.test(after);
 }
 
+/** A proposed request for a future source does not assert an existing source. */
+function isSourceRequest(text: string, start: number, kind: string): boolean {
+  if (kind !== "suggestion") return false;
+  const before = text.slice(0, start)
+    .split(/[.!?;:\n]|\b(?:but|however|although|whereas|nevertheless|and)\b/i).pop()!.trim();
+  const request = /^(?:(?:(?:could|can|would|will)\s+(?:you|we|they|the\s+(?:founders?|team))\s+)|(?:please\s+))?(?:share|provide|send|show|bring|prepare|supply|create|produce|request|obtain|ask\s+(?:(?:the|our|their)\s+)?(?:founders?|team|company)\s+(?:for|to\s+(?:share|provide|send|show|bring|prepare|supply|create|produce)))\s+(?:(?:us|me)\s+)?(?:(?:a|an|any|the|new|later|subsequent|updated|follow[- ]?up)\s+)*$/i;
+  return request.test(`${before} `);
+}
+
 /**
  * Enforces provenance and output structure, not semantic entailment. A quote may
  * be authentic yet fail to support a paraphrase; evaluation must assess that too.
@@ -65,66 +101,100 @@ function isSourceAbsence(text: string, start: number, end: number): boolean {
 export function validateMemoryAnswer(
   raw: unknown,
   evidence: MemoryEvidence[],
+  passages: MemoryPassage[] = [],
 ): { answer: string; citations: Citation[] } {
-  const parsed = generatedMemoryAnswerSchema.parse(raw);
+  const validation = generatedMemoryAnswerSchema.safeParse(raw);
+  if (!validation.success) {
+    throw new MemoryAnswerValidationError("schema", "Generated answer does not match the required schema.", validation.error.issues[0]?.path ?? []);
+  }
+  const parsed = validation.data;
   const byId = new Map(evidence.map((item) => [item.id, item]));
+  const byPassageId = new Map(passages.map((item) => [item.id, item]));
+  if (byPassageId.size !== passages.length) {
+    throw new MemoryAnswerValidationError("invalid_evidence_id", "Passage identifiers must be unique.");
+  }
   const citations = new Map<string, Citation>();
   const paragraphs: string[] = [];
-  for (const block of parsed.blocks) {
+  for (const [blockIndex, block] of parsed.blocks.entries()) {
+    const path: (string | number)[] = ["blocks", blockIndex];
+    const fail = (code: MemoryAnswerValidationCode, message: string, suffix: (string | number)[] = []): never => {
+      throw new MemoryAnswerValidationError(code, message, [...path, ...suffix]);
+    };
     if ((block.kind === "fact" || block.kind === "interpretation") && !block.supports.length) {
-      throw new Error("A recorded claim requires supporting evidence.");
+      fail("missing_support", "A recorded claim requires supporting evidence.", ["supports"]);
     }
     if (/(?:\b(?:and|or|including|such as|with|the)\b\s*[.!?]?|[:,;–—-]|(?:^|\n)\s*(?:[-*]|\d+[.)]))\s*$/i.test(block.text)) {
-      throw new Error("Generated text ends in an unfinished clause or list.");
+      fail("incomplete_text", "Generated text ends in an unfinished clause or list.", ["text"]);
     }
     // All display references are issued below. The model cannot invent its own.
     if (/[\[\]【】]|<\s*\/?[a-z][^>]*>|https?:\/\/|\b(?:page|pages|line|lines)\s*\d/i.test(block.text)) {
-      throw new Error("Generated text contains an unverified reference or markup.");
+      fail("invalid_reference", "Generated text contains an unverified reference or markup.", ["text"]);
     }
     for (const filename of block.text.match(/\b[\w.-]+\.(?:pdf|md|txt)\b/gi) ?? []) {
       if (!evidence.some((item) => item.documentName === filename)) {
-        throw new Error("Generated text names an unknown document.");
+        fail("unsupported_source_assertion", "Generated text names an unknown document.", ["text"]);
       }
     }
+    const resolved = block.supports.map((support, supportIndex) => {
+      const supportPath = ["supports", supportIndex];
+      if ("passageId" in support) {
+        const passage = byPassageId.get(support.passageId);
+        if (!passage) return fail("invalid_evidence_id", "Generated answer referenced a passage that was not supplied.", supportPath);
+        const item = byId.get(passage.evidenceId);
+        if (!item) return fail("invalid_evidence_id", "Generated answer referenced evidence that was not supplied.", supportPath);
+        const localStart = passage.start - item.start;
+        const localEnd = passage.end - item.start;
+        if (!Number.isInteger(localStart) || !Number.isInteger(localEnd) || localStart < 0 || localEnd <= localStart ||
+          localEnd > item.text.length || item.text.slice(localStart, localEnd) !== passage.text) {
+          return fail("quote_mismatch", "Passage does not match retained source text.", supportPath);
+        }
+        if (!passage.text.trim()) return fail("missing_support", "A recorded claim requires non-empty supporting evidence.", supportPath);
+        return { item, quote: passage.text, localStart, referenceId: passage.id };
+      }
+      const item = byId.get(support.evidenceId);
+      if (!item) return fail("invalid_evidence_id", "Generated answer referenced evidence that was not supplied.", supportPath);
+      const localStart = item.text.indexOf(support.quote);
+      if (localStart < 0) return fail("quote_mismatch", "Generated quote does not match retained source text.", supportPath);
+      return { item, quote: support.quote, localStart, referenceId: item.id };
+    });
     // Source titles are display metadata, not model-authored facts. In
     // particular, a deck excerpt cannot be relabeled as a follow-up memo.
-    const supportedDocuments = block.supports.map((support) => byId.get(support.evidenceId))
-      .filter((item): item is MemoryEvidence => item?.kind === "document");
+    const supportedDocuments = resolved.map((support) => support.item)
+      .filter((item) => item.kind === "document");
     for (const [description, docType] of [[/\bmemos?\b/gi, "memo"], [/\bdecks?\b/gi, "pitch_deck"], [/\bnotes\b/gi, "notes"]] as const) {
       const asserted = [...block.text.matchAll(description)].some((match) =>
-        !isSourceAbsence(block.text, match.index!, match.index! + match[0].length));
+        !isSourceAbsence(block.text, match.index!, match.index! + match[0].length) &&
+        !isSourceRequest(block.text, match.index!, block.kind));
       if (asserted && block.supports.length &&
         !supportedDocuments.some((item) => item.documentType === docType)) {
-        throw new Error("Generated text describes a source type that was not supplied as support.");
+        fail("unsupported_source_assertion", "Generated text describes a source type that was not supplied as support.", ["text"]);
       }
     }
     const assertedLaterSource = [...block.text.matchAll(/\b(?:follow[- ]?up|later|subsequent|updated)\s+(?:memos?|decks?|documents?|notes)\b/gi)]
-      .some((match) => !isSourceAbsence(block.text, match.index!, match.index! + match[0].length));
+      .some((match) => !isSourceAbsence(block.text, match.index!, match.index! + match[0].length) &&
+        !isSourceRequest(block.text, match.index!, block.kind));
     if (assertedLaterSource &&
       !supportedDocuments.some((item) => /follow.?up|later|subsequent|updated/i.test(item.documentName ?? ""))) {
-      throw new Error("Generated text introduces an unverified later source.");
+      fail("unsupported_source_assertion", "Generated text introduces an unverified later source.", ["text"]);
     }
     const refs = new Set<string>();
-    for (const support of block.supports) {
-      const item = byId.get(support.evidenceId);
-      if (!item) throw new Error("Generated answer referenced evidence that was not supplied.");
-      const localStart = item.text.indexOf(support.quote);
-      if (localStart < 0) throw new Error("Generated quote does not match retained source text.");
+    for (const [supportIndex, support] of resolved.entries()) {
+      const { item, quote, localStart, referenceId } = support;
       // A source can contain an attempted prompt injection. Such text is retained
       // for provenance but cannot authorize an output instruction or a firm fact.
-      if (/\b(?:ignore|disregard|override|replace)\b[^\n]{0,100}\b(?:instructions?|prompts?|rules?|system|developer)\b|\b(?:system|assistant|developer)\s*:/i.test(support.quote)) {
-        throw new Error("Instruction-like source text cannot support an answer claim.");
+      if (instructionLike(quote)) {
+        fail("instruction_source", "Instruction-like source text cannot support an answer claim.", ["supports", supportIndex]);
       }
-      refs.add(item.id);
-      const key = `${item.id}:${support.quote}`;
+      refs.add(referenceId);
+      const key = `${referenceId}:${quote}`;
       if (!citations.has(key)) citations.set(key, {
         companyId: item.companyId, companyName: item.companyName,
-        snippet: support.quote,
-        evidenceId: item.id, documentId: item.documentId,
+        snippet: quote,
+        evidenceId: referenceId, documentId: item.documentId,
         documentName: item.documentName, documentType: item.documentType,
         chunkId: item.chunkId, sourceDate: item.sourceDate, uploadedAt: item.uploadedAt,
-        quote: support.quote,
-        location: { start: item.start + localStart, end: item.start + localStart + support.quote.length },
+        quote,
+        location: { start: item.start + localStart, end: item.start + localStart + quote.length },
       });
     }
     paragraphs.push(`${LABELS[block.kind]}: ${block.text}${refs.size ? ` ${[...refs].map((id) => `[${id}]`).join(" ")}` : ""}`);

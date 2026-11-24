@@ -65,7 +65,8 @@ export function companyRecordEvidence(company: MemoryCompany): MemoryEvidence {
   const text = [
     `Current company record: ${company.name}`,
     `Recorded decision: ${company.decision ?? "not recorded"}`,
-    `Recorded decision reason: ${company.decisionReason ?? "not recorded"}`,
+    // A missing extracted field is not evidence that the documents lack reasons.
+    ...(company.decisionReason?.trim() ? [`Recorded decision reason: ${company.decisionReason}`] : []),
     `Sector: ${company.sector ?? "not recorded"}`,
     `Last recorded interaction: ${company.lastMetAt ?? "not recorded"}`,
     `Record updated at: ${company.updatedAt} (record metadata, not a source date)`,

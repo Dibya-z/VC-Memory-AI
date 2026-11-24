@@ -1,10 +1,9 @@
 /** Memory Chat: validated planning, exact reads, scoped evidence, verified provenance. */
-import { completeWithMetadata, MODELS } from "@/lib/ai/llm";
-import { buildMemoryChatPrompt, CHAT_SYSTEM } from "@/lib/ai/prompts";
+import { completeWithMetadata } from "@/lib/ai/llm";
 import { planMemoryQuery } from "@/lib/ai/memory-plan";
 import { memoryRepository } from "@/lib/ai/memory-repository";
 import { companyRecordEvidence, selectMemoryEvidence } from "@/lib/ai/memory-evidence";
-import { validateMemoryAnswer } from "@/lib/ai/memory-citations";
+import { generateGroundedMemoryAnswer, type MemoryGenerationTrace } from "@/lib/ai/memory-generation";
 import { chatRequestSchema } from "@/lib/validators";
 import { embedOne } from "@/lib/embeddings";
 import { vectorStore } from "@/lib/vector/local-store";
@@ -21,13 +20,9 @@ export interface MemoryChatRequest {
 export interface ChatTrace {
   plan: QueryPlan;
   evidenceIds: string[];
+  passageIds?: string[];
   evidenceSufficiency?: { sufficient: boolean; reason: string; omittedDocuments: number };
-  generation?: {
-    configuredModel: string;
-    returnedModel: string | null;
-    finishReason: string | null;
-    usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number };
-  };
+  generation?: MemoryGenerationTrace;
   exactQuery?: { operation: "list" | "count"; rowCount: number };
   elapsedMs: number;
 }
@@ -128,27 +123,10 @@ export async function answerFromMemory(
     return finish(`I don't have enough relevant recorded evidence to answer this question. ${selection.reason}`, "insufficient_evidence");
   }
 
-  let completion;
-  try {
-    completion = await deps.generate(buildMemoryChatPrompt(plan, selection.evidence, selection.reason), {
-      system: CHAT_SYSTEM, model: MODELS.reasoning, maxTokens: 1800, temperature: 0, json: true,
-    });
-  } catch {
-    return finish("The answer provider is temporarily unavailable. Please try again.", "provider_error");
-  }
-  trace.generation = {
-    configuredModel: completion.configuredModel,
-    returnedModel: completion.returnedModel,
-    finishReason: completion.finishReason,
-    usage: completion.usage,
-  };
-  if (completion.finishReason !== "stop" || !completion.text.trim()) {
-    return finish("The answer was incomplete and has been withheld. Please try a narrower question or retry.", "incomplete");
-  }
-  try {
-    const validated = validateMemoryAnswer(JSON.parse(completion.text), selection.evidence);
-    return finish(validated.answer, "complete", validated.citations);
-  } catch {
-    return finish("The generated answer could not be verified against the supplied sources. Please retry or narrow the question.", "invalid_response");
-  }
+  const generated = await generateGroundedMemoryAnswer(trace.plan, selection.evidence, selection.reason, {
+    generate: deps.generate, now: deps.now, startedAt: started,
+  });
+  trace.generation = generated.generation;
+  trace.passageIds = generated.passageIds;
+  return finish(generated.answer, generated.status, generated.citations);
 }

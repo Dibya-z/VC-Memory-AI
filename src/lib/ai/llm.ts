@@ -32,10 +32,19 @@ export function llm(): Groq {
 export interface CompleteOptions {
   system?: string;
   model?: string;
+  /** Legacy callers retain max_tokens; new chat callers use maxCompletionTokens. */
   maxTokens?: number;
+  maxCompletionTokens?: number;
   temperature?: number;
   /** Request JSON object mode; callers still validate the resulting object. */
   json?: boolean;
+  /** Sent only to the supported GPT-OSS reasoning models. */
+  reasoningEffort?: "low" | "medium" | "high";
+  /** Optional per-attempt transport bounds; omitted options retain SDK defaults. */
+  timeoutMs?: number;
+  maxRetries?: number;
+  /** Strict schema for supported models; other models use validated JSON mode. */
+  responseSchema?: { name: string; schema: Record<string, unknown> };
 }
 
 export interface CompletionResult {
@@ -47,12 +56,38 @@ export interface CompletionResult {
     promptTokens?: number;
     completionTokens?: number;
     totalTokens?: number;
+    reasoningTokens?: number;
   };
 }
 
 type CompletionResponse = Pick<Groq.Chat.ChatCompletion, "choices" | "model" | "usage">;
 type CompletionRequest = ChatCompletionCreateParamsNonStreaming;
-export type CompletionProvider = (request: CompletionRequest) => Promise<CompletionResponse>;
+export interface CompletionTransportOptions {
+  timeout?: number;
+  maxRetries?: number;
+}
+export type CompletionProvider = (
+  request: CompletionRequest,
+  options?: CompletionTransportOptions,
+) => Promise<CompletionResponse>;
+
+/** Keep capability assumptions explicit; an arbitrary model override is not GPT-OSS. */
+export function supportsStrictStructuredOutput(model: string): boolean {
+  return model === "openai/gpt-oss-120b" || model === "openai/gpt-oss-20b";
+}
+
+function completionTransportOptions(opts: CompleteOptions): CompletionTransportOptions | undefined {
+  if (opts.timeoutMs !== undefined && (!Number.isFinite(opts.timeoutMs) || opts.timeoutMs <= 0 || opts.timeoutMs > 60_000)) {
+    throw new RangeError("Completion timeout must be greater than zero and at most 60000 milliseconds.");
+  }
+  if (opts.maxRetries !== undefined && (!Number.isInteger(opts.maxRetries) || opts.maxRetries < 0 || opts.maxRetries > 2)) {
+    throw new RangeError("Completion transport retries must be an integer from zero to two.");
+  }
+  return opts.timeoutMs === undefined && opts.maxRetries === undefined ? undefined : {
+    ...(opts.timeoutMs !== undefined ? { timeout: opts.timeoutMs } : {}),
+    ...(opts.maxRetries !== undefined ? { maxRetries: opts.maxRetries } : {}),
+  };
+}
 
 /**
  * Translate provider errors into clean, user-facing messages. The Groq free tier
@@ -64,9 +99,9 @@ function asFriendlyError(e: unknown): Error {
   const status = (e as { status?: number } | null)?.status;
   const msg = e instanceof Error ? e.message : String(e);
   if (status === 429 || /rate.?limit|tokens per day|\bTPD\b|quota/i.test(msg)) {
-    return new Error(
+    return Object.assign(new Error(
       "The demo has hit its free-tier AI limit for now. Please try again in a few minutes."
-    );
+    ), { status: 429, code: "rate_limit" });
   }
   return e instanceof Error ? e : new Error(msg);
 }
@@ -85,21 +120,36 @@ export async function complete(
 export async function completeWithMetadata(
   userContent: string,
   opts: CompleteOptions = {},
-  provider: CompletionProvider = (request) => llm().chat.completions.create(request)
+  provider: CompletionProvider = (request, transport) => llm().chat.completions.create(request, transport)
 ): Promise<CompletionResult> {
   const configuredModel = opts.model ?? MODELS.reasoning;
+  const transport = completionTransportOptions(opts);
+  if (opts.maxCompletionTokens !== undefined && (!Number.isInteger(opts.maxCompletionTokens) || opts.maxCompletionTokens < 1)) {
+    throw new RangeError("Completion token budget must be a positive integer.");
+  }
+  if (opts.responseSchema && !/^[A-Za-z0-9_-]{1,64}$/.test(opts.responseSchema.name)) {
+    throw new TypeError("Completion schema name must use 1–64 letters, numbers, underscores, or hyphens.");
+  }
+  const supported = supportsStrictStructuredOutput(configuredModel);
+  const responseFormat = opts.responseSchema && supported ? {
+    type: "json_schema" as const,
+    json_schema: { name: opts.responseSchema.name, schema: opts.responseSchema.schema, strict: true },
+  } : opts.json || opts.responseSchema ? { type: "json_object" as const } : undefined;
   let res;
   try {
     res = await provider({
       model: configuredModel,
-      max_tokens: opts.maxTokens ?? 4000,
+      ...(opts.maxCompletionTokens !== undefined
+        ? { max_completion_tokens: opts.maxCompletionTokens }
+        : { max_tokens: opts.maxTokens ?? 4000 }),
       temperature: opts.temperature ?? 0.4,
-      ...(opts.json ? { response_format: { type: "json_object" as const } } : {}),
+      ...(supported && opts.reasoningEffort ? { reasoning_effort: opts.reasoningEffort } : {}),
+      ...(responseFormat ? { response_format: responseFormat } : {}),
       messages: [
         ...(opts.system ? [{ role: "system" as const, content: opts.system }] : []),
         { role: "user" as const, content: userContent },
       ],
-    });
+    }, transport);
   } catch (e) {
     throw asFriendlyError(e);
   }
@@ -112,6 +162,9 @@ export async function completeWithMetadata(
       promptTokens: res.usage.prompt_tokens,
       completionTokens: res.usage.completion_tokens,
       totalTokens: res.usage.total_tokens,
+      ...(res.usage.completion_tokens_details?.reasoning_tokens !== undefined ? {
+        reasoningTokens: res.usage.completion_tokens_details.reasoning_tokens,
+      } : {}),
     } } : {}),
   };
 }
