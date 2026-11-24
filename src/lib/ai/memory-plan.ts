@@ -144,6 +144,21 @@ const BUSINESS_WORDS = new Set(("what which who how since please compare prepare
   "seed series developer tools history historical ask fundraising diligence questions facts latest updates gtm monday tuesday wednesday thursday friday saturday sunday " +
   MONTHS.join(" ")).split(" "));
 
+/** Coordinated clauses can ask another question without introducing an entity. */
+function isQuestionOrInstruction(value: string): boolean {
+  const text = value.trim().replace(/^please\s+/i, "");
+  const question = /^(?:why|how|what|who|where|when|whether|which)\b\s*(.*)/i.exec(text);
+  const instruction = /^(?:(?:can|could|would|will)\s+you\s+)?(?:then\s+)?(?:explain|describe|summarize|outline|discuss|identify|assess|evaluate|clarify|highlight|analy[sz]e|tell|show|give|compare)\b\s*(.*)/i.exec(text);
+  const rest = question?.[1] ?? instruction?.[1];
+  if (rest === undefined) return false;
+  // Preserve a proper-name operand such as "Explain Robotics". Pronouns,
+  // determiners and lower-case predicates mark a question/instruction clause.
+  const words = rest.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+  return !rest || /\b(?:we|our|us|you|your|me|it|its|they|their|them|the|a|an|why|how|what|who|where|when|whether|which)\b/i.test(rest) ||
+    words.every((word) => BUSINESS_WORDS.has(word)) ||
+    !rest.split(/\s+/).every((word) => /^[A-Z][A-Za-z0-9'-]*$/.test(word));
+}
+
 /** Detect named unknowns in entity slots while retaining known/unknown comparisons. */
 function unknownName(text: string, catalog: MemoryCompany[], sectors: string[]): string | undefined {
   let remainder = text;
@@ -152,28 +167,46 @@ function unknownName(text: string, catalog: MemoryCompany[], sectors: string[]):
   }
   for (const sector of sectors) remainder = remainder.replace(new RegExp(namePattern(sector).source, "giu"), " ");
 
+  let questionClauseFound = false;
   const candidate = (value: string | undefined, explicitlyNamed = false): string | undefined => {
     if (!value) return undefined;
+    const quoted = /^["“‘']/.test(value.trim());
+    if (!explicitlyNamed && !quoted && isQuestionOrInstruction(value)) {
+      questionClauseFound = true;
+      return undefined;
+    }
     let clean = value.trim().replace(/^["“‘']+|["”’']+$/g, "").replace(/['’]s$/i, "");
-    if (!explicitlyNamed) clean = clean.replace(/^(?:(?:compare|please|tell|show|summarize|about|for|on|with|from|between)\s+)+/i, "");
-    if (clean.length < 3 || /^(?:it|them|they|its|their|a|an|the|who|what|our|we|us)\b/i.test(clean)) return undefined;
+    if (!explicitlyNamed && !quoted) clean = clean.replace(/^(?:(?:compare|please|tell|show|summarize|about|for|on|with|from|between)\s+)+/i, "");
+    if (clean.length < 3 || (!explicitlyNamed && !quoted && /^(?:it|them|they|its|their|a|an|the|who|what|our|we|us)\b/i.test(clean))) return undefined;
     const words = clean.toLowerCase().match(/[a-z0-9]+/g) ?? [];
-    if (!explicitlyNamed && words.every((word) => BUSINESS_WORDS.has(word))) return undefined;
+    if (!explicitlyNamed && !quoted && words.every((word) => BUSINESS_WORDS.has(word))) return undefined;
     return clean;
   };
-  const entityWords = String.raw`[A-Za-z][A-Za-z0-9'-]*(?:\s+(?!(?:and|or|versus|vs|between|in|for|with|on|of|who|what|whose|that|which|are|is|was|were|has|have|had|did|does|do|recorded|differ|compare)\b)[A-Za-z][A-Za-z0-9'-]*){0,3}`;
-  for (const match of remainder.matchAll(new RegExp(String.raw`\b(company named|startup named|decision on|founded|meeting with)\s+["“‘']?(${entityWords})`, "gi"))) {
+  const entityWords = String.raw`[A-Za-z][A-Za-z0-9'-]*(?:\s+(?!(?:and|or|versus|vs|between|in|for|with|from|to|on|of|who|what|whose|that|which|why|how|where|when|whether|are|is|was|were|has|have|had|did|does|do|recorded|differ|compare|explain|describe|summarize|outline|discuss|tell|show)\b)[A-Za-z][A-Za-z0-9'-]*){0,3}`;
+  const entityPhrase = String.raw`(?:"[^"\n]{1,160}"|“[^”\n]{1,160}”|'[^'\n]{1,160}'|‘[^’\n]{1,160}’|${entityWords})`;
+  for (const match of remainder.matchAll(new RegExp(String.raw`\b(company named|startup named|decision on|founded|meeting with)\s+(${entityPhrase})`, "gi"))) {
     const name = candidate(match[2], /named$/i.test(match[1]));
     if (name) return name;
   }
   // Explicit comparison positions also retain lower-case unknown names and
   // names after a known company, rather than ignoring the unresolved operand.
   for (const pattern of [
-    new RegExp(String.raw`\b(?:compare|versus|vs|between)\s+["“‘']?(${entityWords})`, "gi"),
-    new RegExp(String.raw`⟦known⟧\s*(?:,?\s*(?:as\s+opposed\s+to|rather\s+than|compared\s+(?:with|to))|,|and|or|versus|vs\.?|with)\s+["“‘']?(${entityWords})`, "gi"),
-    new RegExp(String.raw`(${entityWords})\s+(?:and|or|versus|vs\.?)\s+⟦known⟧`, "gi"),
+    new RegExp(String.raw`\b(?:compare|versus|vs|between)\s+(${entityPhrase})`, "gi"),
+    new RegExp(String.raw`⟦known⟧\s*(?:,?\s*(?:as\s+opposed\s+to|rather\s+than|compared\s+(?:with|to))|,|and|or|versus|vs\.?|with)\s+(${entityPhrase})`, "gi"),
+    new RegExp(String.raw`(${entityPhrase})\s+(?:and|or|versus|vs\.?)\s+⟦known⟧`, "gi"),
   ]) {
     for (const match of remainder.matchAll(pattern)) {
+      const name = candidate(match[1]);
+      if (name) return name;
+    }
+  }
+  if (questionClauseFound && /\bcompar(?:e|ing|ison)|\bversus\b|\bvs\.?\b|\bdiffers?\b/i.test(text)) {
+    // A question clause does not end the comparison: an unknown participant
+    // can still appear later, e.g. "and explain the differences with Acme".
+    for (const match of remainder.matchAll(new RegExp(String.raw`\b(?:and|or|with|from|to|against)\s+(${entityPhrase})`, "gi"))) {
+      // Correlated business fields ("ARR and MRR separate") are not a new
+      // operand. Explicitly quoted names remain eligible even with such words.
+      if (!/^["“‘']/.test(match[1]) && BUSINESS_WORDS.has(match[1].split(/\s+/)[0].toLowerCase())) continue;
       const name = candidate(match[1]);
       if (name) return name;
     }
