@@ -128,6 +128,35 @@ answers against the committed source documents, not independent human grading.
 Live reports mark semantic support as requiring source-based human review; field
 regex checks are diagnostic and can miss contradictions.
 
+## PR #1 review regressions
+
+The review follow-up fixes five query/answer boundary cases without changing the
+schema, provider configuration, or original baseline fixtures:
+
+| Finding | Corrected behavior | Regression coverage |
+|---|---|---|
+| Negative decisions | Contractions with straight or curly apostrophes cannot select the positive decision. Unsupported exclusions ask which decision to include. | Planner unit cases plus orchestration assertions that clarification performs no list/count, retrieval, or generation. |
+| Date ranges | Supported between/from ranges constrain the current record's last interaction with inclusive UTC period endpoints. Malformed, reversed, partial, or unsupported date constraints clarify instead of broadening the result set. | Range fixtures contain exact start/end instants, out-of-range records and an undated record; actual returned company IDs are checked. |
+| Count targets | Only supported company/startup/deal totals use the company count operation. Document, chunk, founder, mixed and unclear targets request clarification. | Unsupported-target spies assert no company count or generation; supported aliases still return the exact fixture total. |
+| Capitalized business concepts | Phrases such as Key Risks and Business Model preserve a correctly resolved company. Genuine unknown companies, including mixed known/unknown comparisons, remain detected. | Scoped known-company evidence and unknown-company comparisons in both orders traverse the production orchestrator. |
+| Missing later sources | Explicit negative source-absence clauses pass as unknowns. Affirmative invented later sources still fail, including after an absence clause in the same block. | Exact requested sentence, absence variants, mixed clauses, forged IDs/excerpts, and fabricated filenames remain covered. |
+
+Review verification passed: **213 tests**, including 69 new planner variants,
+49 orchestration regressions, and additional citation validation groups;
+`npm run eval:memory` passed all 15 original baseline/control cases. Lint,
+TypeScript checks and `npm run build` also passed. The build used a temporary
+snapshot of this clone with inert database settings so the active development
+server on port 3001 could keep its own build output. No production database or
+live AI provider calls were made. No schema or dependency changes were needed.
+
+Run `node --import tsx --test tests/memory-review-regressions.test.ts` for the
+orchestration cases; `npm test` also runs the planner and citation unit variants.
+The existing `npm run eval:memory` still covers all 15 baseline/control cases.
+These checks use fixture repositories and mocked providers; no live database or
+provider checks are required. Natural-language detection remains conservative:
+unsupported phrasing clarifies or fails validation, and source provenance does
+not establish semantic entailment.
+
 ## Optional live evaluation
 
 No live database or provider evaluation was run for this change. No local `.env`
@@ -182,7 +211,7 @@ A selected repeated live sample still does not establish general accuracy.
 ## Verification and remaining limits
 
 - `npm ci` and Prisma client generation succeeded; no schema changes.
-- All 91 tests, lint, TypeScript check and production build pass. The
+- The original implementation passed 91 tests, lint, TypeScript check and production build. The
   initial restricted build failed to fetch Google Fonts; a network-enabled
   retry succeeded without changing typography.
 - Built `/chat`, `/upload` and `/analyzer` returned HTTP 200 on localhost:3001;
