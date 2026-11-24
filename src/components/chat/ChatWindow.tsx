@@ -10,11 +10,14 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowUp, Loader2 } from "lucide-react";
 import type { Citation } from "@/lib/types";
+import { CHAT_LIMITS, recentChatHistory } from "@/lib/chat-context";
 
 interface Msg {
   role: "user" | "assistant";
   content: string;
   citations?: Citation[];
+  excludeFromContext?: boolean;
+  status?: string;
 }
 
 const SUGGESTIONS = [
@@ -28,15 +31,18 @@ export function ChatWindow() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    endRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
   }, [messages, loading]);
 
   async function send(text: string) {
     const q = text.trim();
-    if (!q || loading) return;
+    if (!q || q.length > CHAT_LIMITS.messageChars || loading) return;
     setInput("");
     setMessages((m) => [...m, { role: "user", content: q }]);
     setLoading(true);
@@ -44,13 +50,24 @@ export function ChatWindow() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: q }),
+        body: JSON.stringify({
+          message: q,
+          history: recentChatHistory(messages),
+          ...(activeCompanyId ? { activeCompanyId } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
+      setActiveCompanyId(data.activeCompanyId ?? null);
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: data.answer, citations: data.citations },
+        {
+          role: "assistant",
+          content: data.answer,
+          citations: data.citations,
+          status: data.status,
+          excludeFromContext: ["incomplete", "provider_error", "invalid_response"].includes(data.status),
+        },
       ]);
     } catch (e) {
       setMessages((m) => [
@@ -58,6 +75,7 @@ export function ChatWindow() {
         {
           role: "assistant",
           content: e instanceof Error ? e.message : "Something went wrong.",
+          excludeFromContext: true,
         },
       ]);
     } finally {
@@ -70,7 +88,7 @@ export function ChatWindow() {
       {messages.length === 0 ? (
         <EmptyState onPick={send} />
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-8" role="log" aria-label="Memory chat" aria-live="polite" aria-relevant="additions">
           {messages.map((m, i) => (
             <Message key={i} msg={m} />
           ))}
@@ -90,12 +108,14 @@ export function ChatWindow() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask the firm's memory…"
-          className="h-12 flex-1 border border-input bg-background px-4 text-[15px] transition-colors focus:border-foreground focus:outline-none"
+          aria-label="Ask the firm's memory"
+          maxLength={CHAT_LIMITS.messageChars}
+          className="h-12 min-w-0 flex-1 border border-input bg-background px-4 text-[15px] transition-colors focus:border-foreground focus:outline-none"
         />
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="flex h-12 w-12 items-center justify-center bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="flex h-12 w-12 shrink-0 items-center justify-center bg-primary text-primary-foreground transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground disabled:opacity-40"
           aria-label="Send"
         >
           {loading ? (
@@ -117,12 +137,17 @@ function Message({ msg }: { msg: Msg }) {
       <div
         className={
           isUser
-            ? "whitespace-pre-wrap text-[15px] leading-relaxed"
-            : "whitespace-pre-wrap border-l border-border pl-4 text-[15px] leading-relaxed"
+            ? "whitespace-pre-wrap break-words text-[15px] leading-relaxed"
+            : "whitespace-pre-wrap break-words border-l border-border pl-4 text-[15px] leading-relaxed"
         }
       >
         {msg.content}
       </div>
+      {msg.status === "incomplete" && (
+        <p className="mt-2 pl-4 text-[13px] text-muted-foreground" role="status">
+          This answer could not be completed. Please retry or narrow the question.
+        </p>
+      )}
       {msg.citations && msg.citations.length > 0 && (
         <Citations citations={msg.citations} />
       )}
@@ -136,7 +161,7 @@ function Citations({ citations }: { citations: Citation[] }) {
       <p className="label-eyebrow mb-2">Sources</p>
       <ul className="space-y-1.5">
         {citations.map((c, i) => (
-          <li key={i} className="text-[13px] leading-relaxed">
+          <li key={i} className="break-words text-[13px] leading-relaxed">
             {c.companyId ? (
               <Link
                 href={`/companies/${c.companyId}`}
@@ -147,7 +172,17 @@ function Citations({ citations }: { citations: Citation[] }) {
             ) : (
               <span className="font-medium">{c.companyName ?? "Company"}</span>
             )}
+            {c.documentName && (
+              <span> · {c.documentName}{c.documentType ? ` (${c.documentType.replace(/_/g, " ")})` : ""}</span>
+            )}
+            {c.sourceDate && <span className="text-muted-foreground"> · {c.sourceDate}</span>}
             <span className="text-muted-foreground"> — {c.snippet}</span>
+            {c.evidenceId && (
+              <span className="mt-0.5 block text-[12px] text-muted-foreground">
+                {c.evidenceId}
+                {c.location ? ` · source characters ${c.location.start + 1}–${c.location.end}` : ""}
+              </span>
+            )}
           </li>
         ))}
       </ul>

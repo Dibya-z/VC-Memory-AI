@@ -5,6 +5,8 @@
 
 import { z } from "zod";
 import { DECISIONS, DOC_TYPES } from "@/config/constants";
+import { CHAT_LIMITS } from "@/lib/chat-context";
+export { CHAT_LIMITS } from "@/lib/chat-context";
 
 /** Validates a parsed-out structured extraction before it's written to the DB. */
 export const extractedIntelligenceSchema = z.object({
@@ -35,11 +37,21 @@ export const extractedIntelligenceSchema = z.object({
   docType: z.enum(DOC_TYPES).optional(),
 });
 
-/** Chat request body. */
+/** Bounded, request-scoped context. Assistant history is never source evidence. */
 export const chatRequestSchema = z.object({
-  message: z.string().min(1),
-  conversationId: z.string().optional(),
+  message: z.string().trim().min(1).max(CHAT_LIMITS.messageChars),
+  history: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string().trim().min(1).max(CHAT_LIMITS.messageChars),
+  }).strict()).max(CHAT_LIMITS.historyMessages).optional(),
+  activeCompanyId: z.string().trim().min(1).max(128).optional(),
+}).strict().superRefine((request, ctx) => {
+  if ((request.history ?? []).reduce((sum, message) => sum + message.content.length, 0) > CHAT_LIMITS.historyChars) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["history"], message: "Recent context is too long." });
+  }
 });
+
+export type ChatRequest = z.infer<typeof chatRequestSchema>;
 
 /** Investment brief request body. */
 export const briefRequestSchema = z.object({

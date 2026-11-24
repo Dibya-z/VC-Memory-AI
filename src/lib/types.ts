@@ -15,7 +15,7 @@ export interface Founder {
 /**
  * The structured investment intelligence the LLM extracts from a document.
  * Mirrors the `Company` model's content fields. Produced by lib/ai/extract.ts
- * via Claude structured outputs.
+ * via Groq JSON mode and Zod validation.
  */
 export interface ExtractedIntelligence {
   company: string;
@@ -52,6 +52,16 @@ export interface Citation {
   companyId: string | null;
   companyName: string | null;
   snippet: string;
+  evidenceId?: string;
+  documentId?: string | null;
+  documentName?: string | null;
+  documentType?: string | null;
+  chunkId?: string | null;
+  sourceDate?: string | null;
+  uploadedAt?: string | null;
+  quote?: string;
+  /** Verified character offsets; never invented PDF pages or line numbers. */
+  location?: { start: number; end: number };
 }
 
 /** New-deal analysis output (Feature 3). */

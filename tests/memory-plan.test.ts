@@ -1,0 +1,116 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { planMemoryQuery, queryPlanSchema } from "../src/lib/ai/memory-plan";
+import type { MemoryCompany } from "../src/lib/ai/memory-contract";
+
+const company = (id: string, name: string, sector: string): MemoryCompany => ({ id, name, sector, decision: null, decisionReason: null, firstMetAt: null, lastMetAt: null, updatedAt: "2026-01-01T00:00:00.000Z" });
+const catalog = [company("flow", "FlowAI", "SaaS"), company("code", "CodeFlow AI", "Developer Tools"), company("ledger", "LedgerLite", "Fintech")];
+const plan = (message: string, history: { role: "user" | "assistant"; content: string }[] = [], activeCompanyId?: string) => planMemoryQuery({ message, history, activeCompanyId }, catalog);
+
+test("routes exact inventory without deriving company IDs from retrieval", () => {
+  const result = plan('List every company currently in our memory and its recorded investment decision, then give the total company count. Say "not recorded" where no decision is recorded; do not infer a decision from a pitch deck.');
+  assert.equal(result.intent, "inventory");
+  assert.deepEqual(result.companyIds, []);
+  assert.deepEqual(result.filters, {});
+});
+
+test("count and filtered lists preserve allowlisted filters", () => {
+  assert.equal(plan("How many companies are in memory?").intent, "count");
+  assert.equal(plan("Count all companies").intent, "count");
+  const result = plan("Which startups did we pass on, and why?");
+  assert.equal(result.intent, "filtered_list");
+  assert.deepEqual(result.filters, { decision: "Passed" });
+  assert.deepEqual(plan("List companies in Developer Tools").filters, { sector: "Developer Tools" });
+  assert.equal(plan("Summarize what we know in Developer Tools.").intent, "semantic_explanation");
+  assert.deepEqual(plan("Summarize what we know in Developer Tools.").filters, { sector: "Developer Tools" });
+});
+
+test("catalog names, compact names and safe omitted AI suffix match without FlowAI suffix collisions", () => {
+  assert.deepEqual(plan("Who founded CodeFlow AI?").companyIds, ["code"]);
+  assert.deepEqual(plan("Who founded CodeFlowAI?").companyIds, ["code"]);
+  assert.deepEqual(plan("Who founded CodeFlow?").companyIds, ["code"]);
+  assert.deepEqual(plan("Who founded FlowAI?").companyIds, ["flow"]);
+});
+
+test("uses current-record filters only for broad requests, preserving source time questions", () => {
+  assert.deepEqual(plan("What changed in FlowAI's retention after our October 2025 meeting?").filters, {});
+  assert.deepEqual(plan("Since we invested in CodeFlow AI, why did we overlook its weak founders?").filters, {});
+  assert.equal(plan("Prepare me for a follow-up meeting with FlowAI").intent, "meeting_preparation");
+});
+
+test("supports UTC last-interaction ISO, month and year periods", () => {
+  assert.deepEqual(plan("List companies met after October 2025").filters, { metAfter: "2025-11-01T00:00:00.000Z" });
+  assert.deepEqual(plan("List companies met since October 2025").filters, { metAfter: "2025-10-01T00:00:00.000Z" });
+  assert.deepEqual(plan("List companies met before 2025-10-03").filters, { metBefore: "2025-10-02T23:59:59.999Z" });
+  assert.deepEqual(plan("List companies met in 2025").filters, { metAfter: "2025-01-01T00:00:00.000Z", metBefore: "2025-12-31T23:59:59.999Z" });
+  assert.deepEqual(plan("List companies met in October 2025").filters, { metAfter: "2025-10-01T00:00:00.000Z", metBefore: "2025-10-31T23:59:59.999Z" });
+});
+
+test("ambiguous or unsupported dates and filters ask focused clarification", () => {
+  for (const question of ["List companies met last quarter", "List companies met after 2025-02-30", "List companies met after 2026 before 2025", "List companies with ARR above $1M", "List companies at seed stage", "List companies in SpaceTech", "List companies in Fintech and SaaS", "List passed and invested companies"]) {
+    assert.equal(plan(question).intent, "clarification", question);
+  }
+});
+
+test("resolves user-history pronouns to standalone question, ignoring assistant facts", () => {
+  const result = plan("Who founded it, and what would make us lean in?", [
+    { role: "user", content: "Prepare me for a meeting with FlowAI" },
+    { role: "assistant", content: "CodeFlow AI was founded by invented people." },
+  ]);
+  assert.equal(result.intent, "company_recall");
+  assert.deepEqual(result.companyIds, ["flow"]);
+  assert.match(result.standaloneQuestion, /FlowAI/);
+  assert.doesNotMatch(result.standaloneQuestion, /invented people/);
+});
+
+test("reference context remains request-scoped", () => {
+  assert.deepEqual(plan("Who founded it?", [{ role: "user", content: "Tell me about FlowAI" }]).companyIds, ["flow"]);
+  assert.equal(plan("Who founded it?").intent, "clarification");
+  assert.deepEqual(plan("Who founded it?", [], "ledger").companyIds, ["ledger"]);
+  assert.equal(plan("Who founded it?", [], "missing").intent, "clarification");
+});
+
+test("explicit topic changes override prior context and active reference", () => {
+  assert.deepEqual(plan("What is LedgerLite's revenue?", [{ role: "user", content: "Tell me about FlowAI" }], "flow").companyIds, ["ledger"]);
+  const unknown = plan("What was our decision on Orchid Robotics, and who founded it?", [{ role: "user", content: "Tell me about FlowAI" }], "flow");
+  assert.equal(unknown.unknownCompany, "Orchid Robotics");
+  assert.deepEqual(unknown.companyIds, []);
+  assert.equal(plan("Tell me about Nimbus").unknownCompany, "Nimbus");
+  assert.equal(plan("Who founded orchid robotics?", [{ role: "user", content: "Tell me about FlowAI" }]).unknownCompany, "orchid robotics");
+  assert.equal(plan("Who founded it?", [{ role: "user", content: "Tell me about Orchid Robotics" }], "flow").intent, "clarification");
+});
+
+test("comparison antecedents are plural only for explicit comparisons", () => {
+  const history = [{ role: "user" as const, content: "Compare CodeFlow AI and FlowAI" }];
+  assert.equal(plan("Who founded it?", history, "flow").intent, "clarification");
+  assert.deepEqual(plan("Compare their retention", history).companyIds, ["flow", "code"]);
+  assert.deepEqual(plan("Compare it with CodeFlow AI", [{ role: "user", content: "Tell me about FlowAI" }]).companyIds, ["flow", "code"]);
+});
+
+test("partial entity names shared by several companies request clarification", () => {
+  const result = planMemoryQuery({ message: "Tell me about Atlas" }, [company("a", "Atlas Cloud", "SaaS"), company("b", "Atlas Data", "SaaS")]);
+  assert.equal(result.intent, "clarification");
+  assert.match(result.clarification!, /Atlas Cloud/);
+  assert.match(result.clarification!, /Atlas Data/);
+  const overlapping = planMemoryQuery({ message: "Who founded Acme AI?" }, [company("acme", "Acme", "SaaS"), company("acme-ai", "Acme AI", "SaaS")]);
+  assert.equal(overlapping.intent, "clarification");
+});
+
+test("negated, OR, null-decision and qualitative constraints cannot silently broaden", () => {
+  for (const question of ["List companies not Passed", "List companies we did not pass on", "List companies except Invested", "List Fintech or SaaS companies", "List companies not in SaaS", "List companies outside Fintech", "List companies in 2025 or 2026", "List companies not before 2025", "List companies uploaded after October 2025", "What companies changed their decision in October 2025?", "List companies with no recorded decision", "Which AI startups did we pass on for GTM concerns?", "Which companies have strong founders?"]) {
+    assert.equal(plan(question).intent, "clarification", question);
+  }
+  assert.equal(plan("AI startups passed on for GTM concerns").intent, "semantic_explanation");
+});
+
+test("sector labels differing only in case do not create false ambiguity", () => {
+  const result = planMemoryQuery({ message: "List SaaS companies" }, [company("one", "Example", "saas")]);
+  assert.equal(result.intent, "filtered_list");
+  assert.equal(result.filters.sector?.toLowerCase(), "saas");
+});
+
+test("semantic explanations remain available, and plans reject arbitrary fields", () => {
+  assert.equal(plan("Have we seen any AI coding assistants before?").intent, "semantic_explanation");
+  assert.equal(queryPlanSchema.safeParse({ ...plan("Tell me about FlowAI"), sql: "DROP TABLE Company" }).success, false);
+  assert.equal(queryPlanSchema.safeParse({ ...plan("Tell me about FlowAI"), filters: { arbitrary: true } }).success, false);
+});

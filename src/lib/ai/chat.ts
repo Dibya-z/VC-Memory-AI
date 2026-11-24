@@ -1,83 +1,154 @@
-/**
- * Feature 2 — VC Memory chatbot (RAG).
- *
- * Pipeline:
- *   1. Embed the user's question (lib/embeddings).
- *   2. Retrieve top-K relevant chunks from the vector store (lib/vector).
- *   3. Assemble the retrieved memory into a grounded prompt.
- *   4. Ask the LLM (Groq) to answer using ONLY that memory.
- *   5. Return the answer plus citations to the companies that grounded it.
- */
-
-import { complete } from "@/lib/ai/llm";
-import { CHAT_SYSTEM } from "@/lib/ai/prompts";
+/** Memory Chat: validated planning, exact reads, scoped evidence, verified provenance. */
+import { completeWithMetadata, MODELS } from "@/lib/ai/llm";
+import { buildMemoryChatPrompt, CHAT_SYSTEM } from "@/lib/ai/prompts";
+import { planMemoryQuery } from "@/lib/ai/memory-plan";
+import { memoryRepository } from "@/lib/ai/memory-repository";
+import { companyRecordEvidence, selectMemoryEvidence } from "@/lib/ai/memory-evidence";
+import { validateMemoryAnswer } from "@/lib/ai/memory-citations";
+import { chatRequestSchema } from "@/lib/validators";
 import { embedOne } from "@/lib/embeddings";
 import { vectorStore } from "@/lib/vector/local-store";
 import type { Citation } from "@/lib/types";
+import type { MemoryRepository, QueryPlan } from "@/lib/ai/memory-contract";
+import type { VectorStore } from "@/lib/vector/store";
 
-/** Chunks retrieved per chat query. Slightly leaner than RAG.TOP_K to keep the
- *  grounded context (and token spend) modest — chat is high-frequency. */
-const CHAT_TOP_K = 6;
+export interface MemoryChatRequest {
+  message: string;
+  history?: { role: "user" | "assistant"; content: string }[];
+  activeCompanyId?: string;
+}
+
+export interface ChatTrace {
+  plan: QueryPlan;
+  evidenceIds: string[];
+  evidenceSufficiency?: { sufficient: boolean; reason: string; omittedDocuments: number };
+  generation?: {
+    configuredModel: string;
+    returnedModel: string | null;
+    finishReason: string | null;
+    usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number };
+  };
+  exactQuery?: { operation: "list" | "count"; rowCount: number };
+  elapsedMs: number;
+}
 
 export interface ChatResult {
   answer: string;
   citations: Citation[];
+  activeCompanyId: string | null;
+  status: "complete" | "clarification" | "insufficient_evidence" | "incomplete" | "provider_error" | "invalid_response";
+  trace: ChatTrace;
 }
 
-export async function answerFromMemory(question: string): Promise<ChatResult> {
-  const queryEmbedding = await embedOne(question, "query");
-  const chunks = await vectorStore.search(queryEmbedding, { topK: CHAT_TOP_K });
+/** The same orchestration runs in the API and fixture/live evaluations. */
+export interface MemoryChatDependencies {
+  repository: MemoryRepository;
+  embed: (question: string) => Promise<number[]>;
+  search: VectorStore["search"];
+  generate: typeof completeWithMetadata;
+  now: () => number;
+}
 
-  if (chunks.length === 0) {
-    return {
-      answer:
-        "There's nothing in the firm's memory yet. Upload some documents (or run the demo ingest) and ask again.",
-      citations: [],
-    };
-  }
+const defaults: MemoryChatDependencies = {
+  repository: memoryRepository,
+  embed: (question) => embedOne(question, "query"),
+  search: (embedding, options) => vectorStore.search(embedding, options),
+  generate: completeWithMetadata,
+  now: Date.now,
+};
 
-  const context = chunks
-    .map(
-      (c, i) =>
-        `[${i + 1}] ${c.companyName ?? "Unknown company"}\n${c.content.trim()}`
-    )
-    .join("\n\n---\n\n");
-
-  const userContent = `Firm memory (retrieved context):\n\n${context}\n\nQuestion: ${question}\n\nAnswer using only the memory above.`;
-
-  // Chat uses the default 70B reasoning model for precise grounding (it
-  // distinguishes Passed / Tracking / Invested reliably). maxTokens kept modest
-  // since grounded answers are short.
-  const answer = await complete(userContent, {
-    system: CHAT_SYSTEM,
-    maxTokens: 900,
-    temperature: 0.3,
+export async function answerFromMemory(
+  input: string | MemoryChatRequest,
+  overrides: Partial<MemoryChatDependencies> = {}
+): Promise<ChatResult> {
+  const request = chatRequestSchema.parse(typeof input === "string" ? { message: input } : input);
+  const deps = { ...defaults, ...overrides };
+  const started = deps.now();
+  const catalog = await deps.repository.catalog();
+  const plan = planMemoryQuery(request, catalog);
+  const trace: ChatTrace = { plan, evidenceIds: [], elapsedMs: 0 };
+  const finish = (answer: string, status: ChatResult["status"], citations: Citation[] = []): ChatResult => ({
+    answer, status, citations,
+    activeCompanyId: !plan.unknownCompany && trace.plan.companyIds.length === 1 ? trace.plan.companyIds[0] : null,
+    trace: { ...trace, elapsedMs: deps.now() - started },
   });
 
-  return { answer: answer.trim(), citations: buildCitations(chunks) };
-}
-
-/** One citation per company (first occurrence), in retrieval order. */
-function buildCitations(
-  chunks: { companyId: string | null; companyName: string | null; content: string }[]
-): Citation[] {
-  const seen = new Set<string>();
-  const citations: Citation[] = [];
-  for (const c of chunks) {
-    const key = c.companyId ?? c.companyName ?? "";
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    citations.push({
-      companyId: c.companyId,
-      companyName: c.companyName,
-      snippet: snippet(c.content),
-    });
-    if (citations.length >= 5) break;
+  if (plan.intent === "clarification") {
+    return finish(plan.clarification ?? "Which company or recorded filter do you mean?", "clarification");
   }
-  return citations;
-}
+  if (plan.unknownCompany) {
+    return finish(`I couldn't find a company record for ${plan.unknownCompany} in memory. Its founders and investment decision are not recorded here.`, "insufficient_evidence");
+  }
 
-function snippet(text: string, max = 160): string {
-  const clean = text.trim().replace(/\s+/g, " ");
-  return clean.length > max ? `${clean.slice(0, max).trimEnd()}…` : clean;
+  // Exhaustive results come from typed current-record reads, never vector top-K or a model.
+  if (["inventory", "count", "filtered_list"].includes(plan.intent)) {
+    if (plan.intent === "count") {
+      const count = await deps.repository.count(plan.filters);
+      trace.exactQuery = { operation: "count", rowCount: count };
+      return finish(`Total companies${Object.keys(plan.filters).length ? " matching the recorded filters" : " in memory"}: ${count}.`, "complete");
+    }
+    const rows = await deps.repository.list(plan.filters);
+    const reasons = /\bwhy\b|reasons?/i.test(request.message);
+    const records = rows.map(companyRecordEvidence);
+    trace.evidenceIds = records.map((record) => record.id);
+    trace.exactQuery = { operation: "list", rowCount: rows.length };
+    const lines = rows.map((company) => `• ${company.name}: ${company.decision ?? "not recorded"}${reasons && company.decisionReason ? ` — ${company.decisionReason}` : ""}. [company:${company.id}]`);
+    const citations: Citation[] = records.map((record) => {
+      const quote = record.text.split("\n").slice(0, reasons ? 3 : 2).join("\n");
+      return {
+        companyId: record.companyId, companyName: record.companyName, snippet: quote,
+        evidenceId: record.id, documentId: null, documentName: null, documentType: null,
+        sourceDate: null, uploadedAt: null, chunkId: null, quote,
+        location: { start: 0, end: quote.length },
+      };
+    });
+    return finish(`${lines.length ? lines.join("\n") : "No companies match these recorded filters."}\n\nTotal companies: ${rows.length}.\nThese are current company records; source documents may describe earlier positions.`, "complete", citations);
+  }
+
+  let selection;
+  try {
+    if (Object.keys(plan.filters).length) {
+      const filtered = await deps.repository.list(plan.filters);
+      if (!filtered.length) return finish("No company records match these recorded filters.", "insufficient_evidence");
+      const allowed = new Set(filtered.map((company) => company.id));
+      const evidencePlan = { ...plan, companyIds: plan.companyIds.length ? plan.companyIds.filter((id) => allowed.has(id)) : [...allowed] };
+      trace.plan = evidencePlan;
+      selection = await selectMemoryEvidence(evidencePlan, filtered, deps);
+    } else {
+      selection = await selectMemoryEvidence(plan, catalog, deps);
+    }
+  } catch {
+    return finish("Memory retrieval is temporarily unavailable. Please try again.", "provider_error");
+  }
+  trace.evidenceIds = selection.evidence.map((item) => item.id);
+  trace.evidenceSufficiency = {
+    sufficient: selection.sufficient, reason: selection.reason, omittedDocuments: selection.omittedDocuments,
+  };
+  if (!selection.sufficient) {
+    return finish(`I don't have enough relevant recorded evidence to answer this question. ${selection.reason}`, "insufficient_evidence");
+  }
+
+  let completion;
+  try {
+    completion = await deps.generate(buildMemoryChatPrompt(plan, selection.evidence, selection.reason), {
+      system: CHAT_SYSTEM, model: MODELS.reasoning, maxTokens: 1800, temperature: 0, json: true,
+    });
+  } catch {
+    return finish("The answer provider is temporarily unavailable. Please try again.", "provider_error");
+  }
+  trace.generation = {
+    configuredModel: completion.configuredModel,
+    returnedModel: completion.returnedModel,
+    finishReason: completion.finishReason,
+    usage: completion.usage,
+  };
+  if (completion.finishReason !== "stop" || !completion.text.trim()) {
+    return finish("The answer was incomplete and has been withheld. Please try a narrower question or retry.", "incomplete");
+  }
+  try {
+    const validated = validateMemoryAnswer(JSON.parse(completion.text), selection.evidence);
+    return finish(validated.answer, "complete", validated.citations);
+  } catch {
+    return finish("The generated answer could not be verified against the supplied sources. Please retry or narrow the question.", "invalid_response");
+  }
 }

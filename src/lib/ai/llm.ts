@@ -1,24 +1,12 @@
 import Groq from "groq-sdk";
 import type { ZodType } from "zod";
+import type { ChatCompletionCreateParamsNonStreaming } from "groq-sdk/resources/chat/completions";
 
 /**
  * Central LLM client + model configuration.
  *
- * Provider: Groq (https://console.groq.com) — OpenAI-compatible inference with a
- * genuinely free tier (no credit card). Chosen so the whole prototype runs at
- * $0: Groq for reasoning + Voyage's free tier for embeddings.
- *
- * Models (https://console.groq.com/docs/models):
- *   - REASONING: llama-3.3-70b-versatile — extraction, analysis, brief writing.
- *   - FAST:      llama-3.1-8b-instant    — cheap/low-latency helpers.
- *
- * Free-tier limits (per model, subject to change): ~30 req/min, ~1,000 req/day,
- * which is plenty for a case-study demo. Override any model via the
- * GROQ_MODEL_* env vars.
- *
- * Unlike Anthropic Opus 4.8, Groq/Llama models accept standard sampling params
- * (`temperature`) and have no `thinking`/`effort` knobs — the request surface is
- * the OpenAI-style `chat.completions.create`.
+ * Groq provides generation and Voyage provides embeddings. Keep configured
+ * model overrides; provider availability and quotas depend on the account.
  */
 export const MODELS = {
   reasoning: process.env.GROQ_MODEL_REASONING ?? "llama-3.3-70b-versatile",
@@ -46,7 +34,25 @@ export interface CompleteOptions {
   model?: string;
   maxTokens?: number;
   temperature?: number;
+  /** Request JSON object mode; callers still validate the resulting object. */
+  json?: boolean;
 }
+
+export interface CompletionResult {
+  text: string;
+  configuredModel: string;
+  returnedModel: string | null;
+  finishReason: string | null;
+  usage?: {
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+  };
+}
+
+type CompletionResponse = Pick<Groq.Chat.ChatCompletion, "choices" | "model" | "usage">;
+type CompletionRequest = ChatCompletionCreateParamsNonStreaming;
+export type CompletionProvider = (request: CompletionRequest) => Promise<CompletionResponse>;
 
 /**
  * Translate provider errors into clean, user-facing messages. The Groq free tier
@@ -71,12 +77,23 @@ export async function complete(
   userContent: string,
   opts: CompleteOptions = {}
 ): Promise<string> {
+  return (await completeWithMetadata(userContent, opts)).text;
+}
+
+/** Preserve completion state so Memory Chat can reject unfinished answers. */
+export async function completeWithMetadata(
+  userContent: string,
+  opts: CompleteOptions = {},
+  provider: CompletionProvider = (request) => llm().chat.completions.create(request)
+): Promise<CompletionResult> {
+  const configuredModel = opts.model ?? MODELS.reasoning;
   let res;
   try {
-    res = await llm().chat.completions.create({
-      model: opts.model ?? MODELS.reasoning,
+    res = await provider({
+      model: configuredModel,
       max_tokens: opts.maxTokens ?? 4000,
       temperature: opts.temperature ?? 0.4,
+      ...(opts.json ? { response_format: { type: "json_object" as const } } : {}),
       messages: [
         ...(opts.system ? [{ role: "system" as const, content: opts.system }] : []),
         { role: "user" as const, content: userContent },
@@ -85,7 +102,17 @@ export async function complete(
   } catch (e) {
     throw asFriendlyError(e);
   }
-  return res.choices[0]?.message?.content ?? "";
+  return {
+    text: res.choices[0]?.message?.content ?? "",
+    configuredModel,
+    returnedModel: res.model ?? null,
+    finishReason: res.choices[0]?.finish_reason ?? null,
+    ...(res.usage ? { usage: {
+      promptTokens: res.usage.prompt_tokens,
+      completionTokens: res.usage.completion_tokens,
+      totalTokens: res.usage.total_tokens,
+    } } : {}),
+  };
 }
 
 export interface CompleteJSONOptions extends CompleteOptions {
@@ -102,10 +129,8 @@ export interface CompleteJSONOptions extends CompleteOptions {
  * guarantees syntactically valid JSON. The desired *shape* is described to the
  * model in the prompt and enforced on our side with Zod + one corrective retry.
  *
- * Upgrade path: set GROQ_MODEL_REASONING to an `openai/gpt-oss-*` model (also
- * free on Groq). Those support constrained decoding, so we switch to strict
- * `json_schema` mode automatically for guaranteed schema adherence — no caller
- * changes. Pass `jsonSchema` to enable this.
+ * Strict schema mode remains disabled until all extraction schemas satisfy the
+ * provider's strict requirements. Environment model overrides still apply.
  */
 export async function completeJSON<T>(
   userContent: string,
