@@ -225,24 +225,44 @@ function unknownName(text: string, catalog: MemoryCompany[], sectors: string[]):
 }
 
 /** An exact count always needs a positively identified, supported target. */
-function countRequest(text: string, sectors: string[]): { requested: boolean; supported: boolean } {
-  const requested = /\bhow\s+many\b|\bcounts?\b/i.test(text) || /^(?:what(?:'s| is| are)?\s+(?:the\s+)?|give\s+(?:me\s+)?(?:the\s+)?|show\s+(?:me\s+)?(?:the\s+)?)?(?:number|total)\s+of\b/i.test(text);
-  if (!requested) return { requested: false, supported: false };
+function countRequest(text: string, sectors: string[], catalog: MemoryCompany[]): {
+  requested: boolean; supported: boolean; inventory: boolean;
+} {
+  // A company can itself have "Count" in its name. Only the surrounding task
+  // determines whether the user asked for an exact numeric operation.
+  let query = text;
+  for (const company of catalog) {
+    query = query.replace(new RegExp(namePattern(company.name).source, "giu"), " ⟦company⟧ ");
+  }
+  query = query.replace(/\bcounts?\s+(?:as(?!\s+many\b)|towards?|on)\b/gi, (match) => " ".repeat(match.length));
+  let inventoryQuery = query;
+  for (const sector of sectors) inventoryQuery = inventoryQuery.replace(namePattern(sector), " ");
+  const inventory = /\b(?:list|show|enumerate|which)\s+(?:(?:me|us|all|every|the|our|current|recorded|stored|existing|invested|passed|interested|tracking)\s+)*(?:compan(?:y|ies)|startups?|deals?)\b(?!\s+(?:counts?|totals?|numbers?)\b)/i.test(inventoryQuery);
+  const requested = /\bhow\s+many\b|\bcounts?\b/i.test(query) || /^(?:what(?:'s| is| are)?\s+(?:the\s+)?|give\s+(?:me\s+)?(?:the\s+)?|show\s+(?:me\s+)?(?:the\s+)?)?(?:number|total)\s+of\b/i.test(query);
+  if (!requested) return { requested: false, supported: false, inventory };
   const targets: string[] = [];
-  const end = String.raw`(?=[?.!;]|\b(?:are|is|were|was|do|does|did|have|has|had|with|for|from|in|stored|currently|recorded|exist|we)\b|$)`;
+  const end = String.raw`(?=[?.!;]|\b(?:and|then|also)\s+(?:show|list|give|tell|include|provide|report|return|count|enumerate)\b|\b(?:are|is|were|was|do|does|did|have|has|had|with|for|from|in|stored|currently|recorded|exist|we)\b|$)`;
   for (const pattern of [
     new RegExp(String.raw`\bhow\s+many\s+(.+?)${end}`, "gi"),
-    new RegExp(String.raw`\bcount\s+(?!of\b)(.+?)${end}`, "gi"),
+    new RegExp(String.raw`\bcount\s+(?!(?:of|and|then|also)\b)(.+?)${end}`, "gi"),
     new RegExp(String.raw`\b(?:count|number|total)\s+of\s+(.+?)${end}`, "gi"),
     /\b([A-Za-z][A-Za-z-]*(?:\s+(?:and|or)\s+[A-Za-z][A-Za-z-]*)*)\s+counts?\b/gi,
   ]) {
-    for (const match of text.matchAll(pattern)) targets.push(match[1]);
+    for (const match of query.matchAll(pattern)) {
+      const target = match[1].trim();
+      // These are request verbs/determiners before a bare count, not nouns
+      // naming what should be counted. An explicit incompatible target below
+      // still prevents the inventory context from authorizing a company count.
+      if (!/^(?:and|then|also|show|give|provide|include|add|report|return|present|calculate|get|display|the|their|its|our|a|an|overall|total)$/i.test(target)) targets.push(target);
+    }
   }
-  const supported = targets.length > 0 && targets.every((target) => {
-    for (const sector of sectors) target = target.replace(namePattern(sector), "");
-    return /^(?:(?:all|the|our|total|current|distinct|unique|different|existing|invested|passed|interested|tracking)\s+)*(?:compan(?:y|ies)|startups?|deals?)(?:\s*(?:,|and|or)\s*(?:compan(?:y|ies)|startups?|deals?))*$/i.test(target.trim());
-  });
-  return { requested, supported };
+  const supported = !/\b(?:documents?|chunks?|founders?|customers?|partners?)\b/i.test(query) &&
+    (targets.length > 0 ? targets.every((target) => {
+      if (inventory && /^(?:them|those|these|it|there|are there|there are)$/i.test(target)) return true;
+      for (const sector of sectors) target = target.replace(namePattern(sector), "");
+      return /^(?:(?:all|the|our|total|current|distinct|unique|different|existing|invested|passed|interested|tracking)\s+)*(?:compan(?:y|ies)|startups?|deals?)(?:\s*(?:,|and|or)\s*(?:compan(?:y|ies)|startups?|deals?))*$/i.test(target.trim());
+    }) : inventory);
+  return { requested, supported, inventory };
 }
 
 function decisions(text: string): MemoryFilters["decision"][] {
@@ -267,8 +287,8 @@ export function planMemoryQuery(request: PlanningRequest, catalog: MemoryCompany
   if (!text) return clarify("What would you like to know about the firm's memory?");
   const knownSectors = [...new Map([...SECTORS, ...catalog.flatMap((c) => c.sector ? [c.sector] : [])]
     .map((sector) => [sector.toLowerCase(), sector])).values()];
-  const counting = countRequest(text, knownSectors);
-  if (counting.requested && (!counting.supported || (!/\b(?:list|show|which)\b/i.test(text) && /\b(?:documents?|chunks?|founders?|customers?|partners?)\b/i.test(text)))) {
+  const counting = countRequest(text, knownSectors, catalog);
+  if (counting.requested && !counting.supported) {
     return clarify("Exact counts support companies, startups, or deals. What company count would you like? Counts of documents, chunks, people, or other targets are not supported.");
   }
   let companies = mentions(text, catalog);
@@ -350,7 +370,7 @@ export function planMemoryQuery(request: PlanningRequest, catalog: MemoryCompany
       return clarify(`Which recorded sector do you mean by "${sectorPhrase}"? Available sectors include ${knownSectors.join(", ")}.`);
     }
     if (!explicitList && !isCount) return finish({ ...base, intent: "semantic_explanation" });
-    if (isCount && !/\b(?:list|show|which)\b/i.test(text)) return finish({ ...base, intent: "count" });
+    if (isCount && !counting.inventory) return finish({ ...base, intent: "count" });
     return finish({ ...base, intent: Object.keys(base.filters).length ? "filtered_list" : "inventory" });
   }
   if (request.activeCompanyId && !catalog.some((c) => c.id === request.activeCompanyId)) return clarify("The active company is no longer in memory. Which company do you mean?");
