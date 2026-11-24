@@ -11,16 +11,16 @@ import type { DealAnalysis, SimilarCompany } from "@/lib/types";
 
 export function AnalysisReport({ analysis }: { analysis: DealAnalysis }) {
   return (
-    <div className="space-y-10">
+    <div className="min-w-0 space-y-10 [overflow-wrap:anywhere]">
       <section>
         <h2 className="label-eyebrow mb-3">Summary</h2>
-        <p className="text-[16px] leading-relaxed">{analysis.summary}</p>
+        <p className="text-base leading-relaxed">{analysis.summary}</p>
       </section>
 
       {/* Hedged recommendation — accent highlight */}
       <div className="border-l-2 border-accent pl-5">
         <p className="label-eyebrow mb-2">Recommendation</p>
-        <p className="text-[16px] leading-relaxed">{analysis.recommendation}</p>
+        <p className="text-base leading-relaxed">{analysis.recommendation}</p>
       </div>
 
       {(analysis.positiveSignals.length > 0 || analysis.risks.length > 0) && (
@@ -39,30 +39,37 @@ export function AnalysisReport({ analysis }: { analysis: DealAnalysis }) {
           <h2 className="label-eyebrow mb-4">Questions for the founders</h2>
           <ol className="space-y-2.5">
             {analysis.founderQuestions.map((q, i) => (
-              <li key={i} className="flex gap-3 text-[15px] leading-relaxed">
+              <li key={i} className="flex gap-3 text-base leading-relaxed">
                 <span className="shrink-0 tabular-nums text-muted-foreground">
                   {i + 1}.
                 </span>
-                <span>{q}</span>
+                <span className="min-w-0 flex-1">{q}</span>
               </li>
             ))}
           </ol>
         </section>
       )}
 
-      {analysis.similarCompanies.length > 0 && (
-        <section className="border-t border-border pt-8">
-          <h2 className="label-eyebrow mb-1">Similar past deals in memory</h2>
-          <p className="mb-6 text-[14px] text-muted-foreground">
-            What the firm concluded on the closest comparable companies.
-          </p>
+      <section className="border-t border-border pt-8">
+        <h2 className="label-eyebrow mb-1">Similar past deals in memory</h2>
+        <p className="mb-6 text-sm text-muted-foreground">
+          The closest retrieved companies, with recorded decisions where
+          available.
+        </p>
+        {analysis.similarCompanies.length > 0 ? (
           <div className="space-y-5">
-            {analysis.similarCompanies.map((c) => (
-              <SimilarRow key={c.companyId} c={c} />
+            {analysis.similarCompanies.map((company) => (
+              <SimilarRow key={company.companyId} c={company} />
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <p className="border-l border-border pl-4 text-sm leading-relaxed text-muted-foreground">
+            No comparable companies were returned from the current memory. This
+            does not establish that no similar company exists; add relevant
+            documents or review Company Memory directly.
+          </p>
+        )}
+      </section>
     </div>
   );
 }
@@ -73,18 +80,18 @@ function SimilarRow({ c }: { c: SimilarCompany }) {
       <div className="flex flex-wrap items-center gap-2">
         <Link
           href={`/companies/${c.companyId}`}
-          className="text-[15px] font-medium underline-offset-2 transition-colors hover:text-accent hover:underline"
+          className="min-w-0 text-base font-medium underline underline-offset-4 transition-colors hover:text-foreground"
         >
           {c.name}
         </Link>
         {c.sector && <Chip>{c.sector}</Chip>}
         {c.decision && <DecisionBadge decision={c.decision} />}
-        <span className="label-eyebrow ml-auto tabular-nums">
-          {Math.round(c.similarity * 100)}% match
+        <span className="ml-auto text-sm text-muted-foreground">
+          Retrieved comparable
         </span>
       </div>
       {c.reason && (
-        <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {c.reason}
         </p>
       )}

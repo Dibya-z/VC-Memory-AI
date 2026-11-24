@@ -20,7 +20,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "VC Memory AI",
+  title: { default: "VC Memory AI", template: "%s | VC Memory AI" },
   description:
     "AI second brain for lean venture capital teams — remember every startup interaction.",
 };

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { UPLOAD } from "@/config/constants";
-import { ingestDocument } from "@/lib/ingest/pipeline";
+import {
+  ingestDocument,
+  IngestionFailedError,
+  UploadInProgressError,
+} from "@/lib/ingest/pipeline";
 import type { UploadResult } from "@/lib/types";
 
 /**
@@ -14,8 +18,8 @@ import type { UploadResult } from "@/lib/types";
 
 // pdf-parse + Prisma need the Node runtime (not edge).
 export const runtime = "nodejs";
-// Ingestion does extract + LLM + multiple embeddings (Vercel default is 10s).
-export const maxDuration = 60;
+// Leave room for bounded external work plus claim/finalization transactions.
+export const maxDuration = 120;
 
 export async function POST(request: Request) {
   let form: FormData;
@@ -24,19 +28,21 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json(
       { error: "Expected multipart/form-data with file uploads." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  const files = [
-    ...form.getAll("files"),
-    ...form.getAll("file"),
-  ].filter((f): f is File => f instanceof File);
+  const files = [...form.getAll("files"), ...form.getAll("file")].filter(
+    (f): f is File => f instanceof File,
+  );
 
   if (files.length === 0) {
     return NextResponse.json(
-      { error: "No files provided. Attach at least one .pdf, .txt, or .md file." },
-      { status: 400 }
+      {
+        error:
+          "No files provided. Attach at least one .pdf, .txt, or .md file.",
+      },
+      { status: 400 },
     );
   }
 
@@ -51,23 +57,38 @@ export async function POST(request: Request) {
 
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
-      const { documentId, companyId, intelligence } = await ingestDocument({
-        buffer,
-        filename: file.name,
-        mime: file.type,
-      });
+      const { documentId, companyId, intelligence, reused } =
+        await ingestDocument({
+          buffer,
+          filename: file.name,
+          mime: file.type,
+        });
       results.push({
         filename: file.name,
         ok: true,
         documentId,
         companyId,
         intelligence,
+        ...(reused ? { reused: true } : {}),
       });
     } catch (err) {
       results.push({
         filename: file.name,
         ok: false,
-        error: err instanceof Error ? err.message : "Failed to process this file.",
+        error:
+          err instanceof UploadInProgressError ||
+          err instanceof IngestionFailedError
+            ? err.message
+            : "Uploads are temporarily unavailable. Retry shortly; the workspace maintainer may need to complete the database update.",
+        ...(err instanceof UploadInProgressError
+          ? {
+              pending: true,
+              retryAfterSeconds: Math.min(
+                120,
+                Math.max(1, Math.ceil(err.retryAfterSeconds)),
+              ),
+            }
+          : {}),
       });
     }
   }

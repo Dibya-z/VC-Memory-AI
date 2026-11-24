@@ -35,19 +35,15 @@ export const DECISIONS = [
 ] as const;
 export type Decision = (typeof DECISIONS)[number];
 
-export const DOC_TYPES = [
-  "pitch_deck",
-  "memo",
-  "notes",
-  "other",
-] as const;
+export const DOC_TYPES = ["pitch_deck", "memo", "notes", "other"] as const;
 export type DocType = (typeof DOC_TYPES)[number];
 
 /** File upload constraints (enforced in the upload route + Dropzone). */
 export const UPLOAD = {
   ACCEPTED_EXTENSIONS: [".pdf", ".txt", ".md"] as const,
   ACCEPTED_MIME: ["application/pdf", "text/plain", "text/markdown"] as const,
-  MAX_SIZE_BYTES: 15 * 1024 * 1024, // 15 MB
+  // Leave multipart overhead below the standard Vercel Function request limit.
+  MAX_SIZE_BYTES: 4 * 1024 * 1024, // 4 MiB per file
 } as const;
 
 /** RAG retrieval defaults. */

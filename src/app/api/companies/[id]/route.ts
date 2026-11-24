@@ -7,8 +7,11 @@ import { getCompany } from "@/lib/db/queries";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic"; // reflects live DB; never prerender
 
-export async function GET(_req: Request, ctx: { params: { id: string } }) {
-  const company = await getCompany(ctx.params.id);
+export async function GET(
+  _req: Request,
+  ctx: { params: Promise<{ id: string }> },
+) {
+  const company = await getCompany((await ctx.params).id);
   if (!company) {
     return NextResponse.json({ error: "Company not found" }, { status: 404 });
   }

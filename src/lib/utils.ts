@@ -9,27 +9,25 @@ export function cn(...inputs: ClassValue[]) {
 /** Human-friendly relative time, e.g. "8 months ago". */
 export function timeAgo(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  const seconds = Math.floor((Date.now() - d.getTime()) / 1000);
-  const units: [number, string][] = [
-    [60, "second"],
+  if (!Number.isFinite(d.getTime())) return "Date unavailable";
+  const seconds = (d.getTime() - Date.now()) / 1000;
+  if (Math.abs(seconds) < 60) return seconds > 0 ? "in a moment" : "just now";
+  const units: [number, Intl.RelativeTimeFormatUnit][] = [
+    [31536000, "year"],
+    [2592000, "month"],
+    [86400, "day"],
+    [3600, "hour"],
     [60, "minute"],
-    [24, "hour"],
-    [30, "day"],
-    [12, "month"],
-    [Number.POSITIVE_INFINITY, "year"],
   ];
-  let value = seconds;
-  let unit = "second";
-  for (const [step, name] of units) {
-    if (Math.abs(value) < step) {
-      unit = name;
-      break;
+  for (const [size, unit] of units) {
+    if (Math.abs(seconds) >= size) {
+      return new Intl.RelativeTimeFormat("en", { numeric: "always" }).format(
+        Math.trunc(seconds / size),
+        unit,
+      );
     }
-    value = Math.floor(value / step);
-    unit = name;
   }
-  const rounded = Math.max(1, Math.abs(value));
-  return `${rounded} ${unit}${rounded === 1 ? "" : "s"} ago`;
+  return "just now";
 }
 
 /** Safely parse a Prisma `Json` field into a typed value with a fallback. */

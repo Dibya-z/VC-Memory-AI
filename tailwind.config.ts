@@ -40,6 +40,7 @@ const config: Config = {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          art: "hsl(var(--accent-art))",
         },
         card: {
           DEFAULT: "hsl(var(--card))",
@@ -57,6 +58,11 @@ const config: Config = {
       },
       letterSpacing: {
         label: "0.15em",
+      },
+      fontSize: {
+        caption: ["0.75rem", { lineHeight: "1.5" }],
+        body: ["0.9375rem", { lineHeight: "1.7" }],
+        title: ["1.125rem", { lineHeight: "1.4" }],
       },
     },
   },

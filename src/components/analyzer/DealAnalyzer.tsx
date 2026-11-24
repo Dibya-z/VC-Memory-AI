@@ -1,211 +1,563 @@
 "use client";
 
-/**
- * Deal analyzer input (Feature 3): upload a new deck OR paste text, then run
- * analysis + memory comparison. Renders <AnalysisReport /> on success.
- */
-
-import { useRef, useState } from "react";
-import { UploadCloud, Loader2, ArrowRight, FileText, X } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import { UploadCloud, ArrowRight, FileText, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UPLOAD } from "@/config/constants";
 import { SAMPLE_DECKS } from "@/config/sample-decks";
 import { AnalysisReport } from "@/components/analyzer/AnalysisReport";
+import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
+import { validateDocumentFile } from "@/lib/client/files";
+import { requestJson } from "@/lib/client/request";
+import { useHydrated } from "@/lib/client/use-hydrated";
+import {
+  ANALYSIS_SESSION_KEY,
+  ANALYSIS_SESSION_LIMIT,
+  isDealAnalysis,
+  parseAnalysisSession,
+  type AnalysisSession,
+} from "@/lib/client/analysis-session";
 import type { DealAnalysis } from "@/lib/types";
 
+type SourceMode = "file" | "text";
+const REMOVE_STORAGE_ERROR =
+  "Could not remove saved analysis. Clear this site’s browser data to remove it.";
+
+function readSavedAnalysis(): { saved: AnalysisSession | null; error: string } {
+  try {
+    const raw = sessionStorage.getItem(ANALYSIS_SESSION_KEY);
+    const saved = raw ? parseAnalysisSession(raw) : null;
+    return {
+      saved,
+      error:
+        raw && !saved
+          ? "The saved analysis could not be restored. Clear this site’s browser data to remove it."
+          : "",
+    };
+  } catch {
+    return {
+      saved: null,
+      error:
+        "This browser cannot restore saved analysis. Keep this page open to retain your work.",
+    };
+  }
+}
+
 export function DealAnalyzer() {
+  const hydrated = useHydrated();
+  return hydrated ? (
+    <AnalyzerSession />
+  ) : (
+    <p role="status" className="text-sm text-muted-foreground">
+      Loading analysis tools…
+    </p>
+  );
+}
+
+function AnalyzerSession() {
+  const [initial] = useState(readSavedAnalysis);
+  const [mode, setMode] = useState<SourceMode>(initial.saved?.mode ?? "file");
   const [file, setFile] = useState<File | null>(null);
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initial.saved?.text ?? "");
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [analysis, setAnalysis] = useState<DealAnalysis | null>(null);
-  const [analyzedName, setAnalyzedName] = useState<string | null>(null);
+  const [notice, setNotice] = useState(
+    initial.saved ? "Your saved analysis was restored in this tab." : "",
+  );
+  const [analysis, setAnalysis] = useState<DealAnalysis | null>(
+    initial.saved?.analysis ?? null,
+  );
+  const [analyzedName, setAnalyzedName] = useState(
+    initial.saved?.analyzedName ?? "",
+  );
+  const [restoredFilename, setRestoredFilename] = useState(
+    initial.saved?.filename ?? "",
+  );
+  const [keepInTab, setKeepInTab] = useState(Boolean(initial.saved));
+  const storageReady = true;
+  const [storageError, setStorageError] = useState(initial.error);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sourceRef = useRef<HTMLHeadingElement>(null);
+  const resultRef = useRef<HTMLHeadingElement>(null);
+  const requestRef = useRef<AbortController | null>(null);
+  const fieldId = useId();
 
-  async function analyze(sample?: { text: string; label: string }) {
-    setError(null);
-    const pasted = (sample?.text ?? text).trim();
-    if (!file && !sample && pasted.length < 30) {
-      setError("Upload a deck or paste at least a few sentences.");
+  useEffect(() => () => requestRef.current?.abort(), []);
+  useEffect(() => {
+    if (!storageReady || !keepInTab) return;
+    const save = () => {
+      try {
+        const saved: AnalysisSession = {
+          version: 1,
+          mode,
+          text,
+          filename: file?.name ?? restoredFilename,
+          analyzedName,
+          analysis,
+        };
+        const serialized = JSON.stringify(saved);
+        if (
+          text.length > 120_000 ||
+          serialized.length > ANALYSIS_SESSION_LIMIT
+        ) {
+          try {
+            sessionStorage.removeItem(ANALYSIS_SESSION_KEY);
+          } catch {
+            setStorageError(REMOVE_STORAGE_ERROR);
+            return;
+          }
+          setStorageError(
+            "This source or result is too large to keep in this tab. Keep this page open; the current analysis still works.",
+          );
+          return;
+        }
+        sessionStorage.setItem(ANALYSIS_SESSION_KEY, serialized);
+        setStorageError("");
+      } catch {
+        setStorageError(
+          "Your browser could not save this analysis. Keep this page open to retain your work.",
+        );
+      }
+    };
+    const timer = window.setTimeout(save, 0);
+    window.addEventListener("pagehide", save);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pagehide", save);
+    };
+  }, [
+    storageReady,
+    keepInTab,
+    mode,
+    text,
+    file,
+    restoredFilename,
+    analyzedName,
+    analysis,
+  ]);
+  useEffect(() => {
+    if (analysis) resultRef.current?.focus();
+  }, [analysis]);
+
+  function changePersistence(enabled: boolean) {
+    if (enabled) {
+      setStorageError("");
+      setKeepInTab(true);
       return;
     }
+    try {
+      sessionStorage.removeItem(ANALYSIS_SESSION_KEY);
+      setKeepInTab(false);
+      setStorageError("");
+      setNotice("Saved analysis removed from this browser tab.");
+    } catch {
+      // Keep the checked state until removal is confirmed; never imply deletion.
+      setStorageError(REMOVE_STORAGE_ERROR);
+    }
+  }
+
+  function selectFile(selected: File | undefined) {
+    if (!selected || requestRef.current) return;
+    const problem = validateDocumentFile(selected);
+    setError(problem);
+    if (problem) {
+      setFile(null);
+      setRestoredFilename("");
+      return;
+    }
+    setFile(selected);
+    setRestoredFilename("");
+    setNotice(selected.name + " selected.");
+  }
+
+  async function analyze(sample?: { text: string; label: string }) {
+    if (requestRef.current) return;
+    const source = sample
+      ? {
+          mode: "text" as const,
+          text: sample.text,
+          file: null,
+          label: sample.label,
+        }
+      : {
+          mode,
+          text: text.trim(),
+          file,
+          label: mode === "file" ? (file?.name ?? "Document") : "Pasted deck",
+        };
+    const problem =
+      source.mode === "file"
+        ? source.file
+          ? validateDocumentFile(source.file)
+          : "Choose a deck before analyzing."
+        : source.text.trim().length < 30
+          ? "Paste at least 30 characters of deck or memo text."
+          : null;
+    if (problem) {
+      setError(problem);
+      return;
+    }
+    const controller = new AbortController();
+    requestRef.current = controller;
+    setError(null);
+    setNotice(
+      "Analyzing the selected source and retrieving comparable companies.",
+    );
     setLoading(true);
     try {
-      const fd = new FormData();
-      if (file && !sample) fd.append("file", file);
-      else fd.append("text", pasted);
-      const res = await fetch("/api/analyze", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Analysis failed.");
+      const body = new FormData();
+      if (source.mode === "file" && source.file)
+        body.append("file", source.file);
+      else body.append("text", source.text.trim());
+      const data = await requestJson<{
+        analysis: DealAnalysis;
+        filename?: string;
+      }>("/api/analyze", {
+        method: "POST",
+        body,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted || requestRef.current !== controller)
+        return;
+      if (!isDealAnalysis(data.analysis))
+        throw new Error(
+          "The server returned an incomplete analysis. Your source is still available; retry analysis.",
+        );
+      setAnalyzedName(source.label);
       setAnalysis(data.analysis);
-      setAnalyzedName(sample ? sample.label : data.filename ?? "Pasted deck");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Analysis failed.");
+      setNotice("Analysis complete for " + source.label + ".");
+    } catch (cause) {
+      if (controller.signal.aborted || requestRef.current !== controller)
+        return;
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Analysis failed. Your source is still available; try again.",
+      );
+      setNotice("");
     } finally {
-      setLoading(false);
+      if (requestRef.current === controller) {
+        requestRef.current = null;
+        setLoading(false);
+      }
     }
+  }
+
+  function cancel() {
+    requestRef.current?.abort();
+    requestRef.current = null;
+    setLoading(false);
+    setNotice("Analysis stopped. Your source is still available.");
   }
 
   function runSample(deck: (typeof SAMPLE_DECKS)[number]) {
-    setFile(null);
+    setMode("text");
     setText(deck.text);
-    void analyze({ text: deck.text, label: `${deck.label} (sample deck)` });
+    void analyze({ text: deck.text, label: deck.label + " (sample deck)" });
   }
 
-  function reset() {
+  function returnToSource(clear: boolean) {
     setAnalysis(null);
-    setFile(null);
-    setText("");
     setError(null);
-    setAnalyzedName(null);
-  }
-
-  if (analysis) {
-    return (
-      <div className="space-y-8">
-        <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
-          <p className="label-eyebrow">Analysis · {analyzedName}</p>
-          <button
-            type="button"
-            onClick={reset}
-            className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Analyze another
-          </button>
-        </div>
-        <AnalysisReport analysis={analysis} />
-      </div>
+    setNotice(
+      clear ? "Ready for another analysis." : "Your source is ready to edit.",
     );
+    if (clear) {
+      setFile(null);
+      setText("");
+      setMode("file");
+      setAnalyzedName("");
+      setRestoredFilename("");
+    }
+    requestAnimationFrame(() => sourceRef.current?.focus());
   }
 
   return (
-    <div className="space-y-6">
-      {/* File input / dropzone */}
-      <div
-        role="button"
-        tabIndex={0}
-        onClick={() => inputRef.current?.click()}
-        onKeyDown={(e) =>
-          (e.key === "Enter" || e.key === " ") && inputRef.current?.click()
-        }
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragging(false);
-          const f = e.dataTransfer.files?.[0];
-          if (f) setFile(f);
-        }}
-        className={cn(
-          "flex cursor-pointer flex-col items-center justify-center border border-dashed px-6 py-10 text-center transition-colors duration-200",
-          dragging
-            ? "border-accent bg-accent/5"
-            : "border-border hover:border-foreground/40 hover:bg-secondary"
-        )}
+    <div className="min-w-0 space-y-6 [overflow-wrap:anywhere]">
+      <p
+        className="sr-only"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
       >
-        {file ? (
-          <span className="flex items-center gap-2 text-[15px] font-medium">
-            <FileText className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-            {file.name}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setFile(null);
-              }}
-              className="text-muted-foreground hover:text-foreground"
-              aria-label="Remove file"
+        {notice}
+      </p>
+      <div className="space-y-1 border-b border-border pb-4">
+        <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={keepInTab}
+            disabled={!storageReady}
+            onChange={(event) => changePersistence(event.target.checked)}
+            className="accent-foreground"
+          />
+          Keep source text and result in this browser tab
+        </label>
+        <p className="text-sm text-muted-foreground">
+          Optional browser storage survives refresh in this tab. Uncheck to
+          remove saved data. File contents are never saved; reselect a file to
+          analyze it again.
+        </p>
+        {storageError && <Alert variant="info">{storageError}</Alert>}
+      </div>
+      {analysis ? (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
+            <h2
+              ref={resultRef}
+              tabIndex={-1}
+              className="min-w-0 text-base font-medium focus:outline-none"
             >
-              <X className="h-3.5 w-3.5" strokeWidth={1.5} />
-            </button>
-          </span>
-        ) : (
-          <>
-            <UploadCloud
-              className="mb-4 h-7 w-7 text-muted-foreground"
-              strokeWidth={1.5}
-            />
-            <p className="text-[15px] font-medium">
-              Drop a new pitch deck — or click to browse
-            </p>
-            <p className="mt-1.5 text-[13px] text-muted-foreground">
-              {UPLOAD.ACCEPTED_EXTENSIONS.join(" · ")}
-            </p>
-          </>
-        )}
-        <input
-          ref={inputRef}
-          type="file"
-          accept={UPLOAD.ACCEPTED_EXTENSIONS.join(",")}
-          className="hidden"
-          onChange={(e) => {
-            setFile(e.target.files?.[0] ?? null);
-            e.target.value = "";
-          }}
-        />
-      </div>
-
-      {/* or paste */}
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-border" />
-        <span className="label-eyebrow">or paste</span>
-        <div className="h-px flex-1 bg-border" />
-      </div>
-
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        rows={6}
-        placeholder="Paste the deck or memo text…"
-        className="w-full resize-y border border-input bg-background p-3 text-[15px] leading-relaxed transition-colors focus:border-foreground focus:outline-none"
-      />
-
-      {/* No file handy? One-click sample decks (fictional new companies). */}
-      <div className="space-y-2.5">
-        <p className="label-eyebrow">No deck handy? Analyze a sample</p>
-        <div className="flex flex-wrap gap-2">
-          {SAMPLE_DECKS.map((d) => (
-            <button
-              key={d.id}
-              type="button"
+              Analysis · {analyzedName}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => returnToSource(false)}
+              >
+                Edit source
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => returnToSource(true)}
+              >
+                Start another
+              </Button>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {keepInTab
+              ? storageError
+                ? "Browser storage needs attention. Saved data may remain; see the message above."
+                : "Source text and this result are saved in this browser tab."
+              : "This result is not saved. Refreshing or leaving this page clears it."}
+          </p>
+          <AnalysisReport analysis={analysis} />
+        </>
+      ) : (
+        <>
+          <h2
+            ref={sourceRef}
+            tabIndex={-1}
+            className="text-base font-medium focus:outline-none"
+          >
+            Choose an analysis source
+          </h2>
+          <fieldset
+            disabled={loading}
+            className="min-w-0 space-y-5 disabled:opacity-70"
+            aria-busy={loading}
+          >
+            <legend className="sr-only">Deck source</legend>
+            <div className="flex flex-wrap gap-5">
+              <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name={fieldId + "-mode"}
+                  value="file"
+                  checked={mode === "file"}
+                  onChange={() => {
+                    setMode("file");
+                    setError(null);
+                  }}
+                  className="accent-foreground"
+                />
+                Upload file
+              </label>
+              <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name={fieldId + "-mode"}
+                  value="text"
+                  checked={mode === "text"}
+                  onChange={() => {
+                    setMode("text");
+                    setError(null);
+                  }}
+                  className="accent-foreground"
+                />
+                Paste text
+              </label>
+            </div>
+            {mode === "file" ? (
+              <div
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  if (!loading) setDragging(true);
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setDragging(false);
+                  if (loading) return;
+                  if (event.dataTransfer.files.length > 1) {
+                    setFile(null);
+                    setRestoredFilename("");
+                    setError(
+                      "Analyze one document at a time. Choose a single file.",
+                    );
+                  } else selectFile(event.dataTransfer.files[0]);
+                }}
+                className={cn(
+                  "min-w-0 space-y-4 border border-dashed px-5 py-8",
+                  dragging ? "border-foreground bg-secondary" : "border-input",
+                )}
+              >
+                <UploadCloud
+                  className="h-7 w-7 text-muted-foreground"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+                <div>
+                  <p className="text-base font-medium">
+                    Drop a pitch deck here
+                  </p>
+                  <p
+                    id={fieldId + "-file-help"}
+                    className="mt-1 text-sm text-muted-foreground"
+                  >
+                    {UPLOAD.ACCEPTED_EXTENSIONS.join(" · ")} · up to{" "}
+                    {UPLOAD.MAX_SIZE_BYTES / (1024 * 1024)} MB · one file
+                  </p>
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => inputRef.current?.click()}
+                  aria-describedby={
+                    fieldId +
+                    "-file-help" +
+                    (error ? " " + fieldId + "-error" : "")
+                  }
+                >
+                  Browse files
+                </Button>
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept={UPLOAD.ACCEPTED_EXTENSIONS.join(",")}
+                  tabIndex={-1}
+                  aria-label="Choose deck file"
+                  className="hidden"
+                  onChange={(event) => {
+                    selectFile(event.target.files?.[0]);
+                    event.target.value = "";
+                  }}
+                />
+                {file && (
+                  <div className="flex min-w-0 items-center gap-3 border-t border-border pt-3">
+                    <FileText className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span className="min-w-0 flex-1 text-sm">{file.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove file"
+                      onClick={() => {
+                        setFile(null);
+                        setRestoredFilename("");
+                        setError(null);
+                        setNotice("File removed.");
+                      }}
+                    >
+                      <X className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                )}
+                {!file && restoredFilename && (
+                  <Alert variant="info">
+                    Previously selected: {restoredFilename}. Reselect this file
+                    to run another analysis; file contents were not saved.
+                  </Alert>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <label
+                  htmlFor={fieldId + "-text"}
+                  className="block text-sm font-medium"
+                >
+                  Deck or memo text
+                </label>
+                <textarea
+                  id={fieldId + "-text"}
+                  value={text}
+                  onChange={(event) => setText(event.target.value)}
+                  rows={7}
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={
+                    fieldId +
+                    "-text-help" +
+                    (error ? " " + fieldId + "-error" : "")
+                  }
+                  placeholder="Paste the deck or memo text…"
+                  className="w-full resize-y border border-input bg-background p-3 text-base leading-relaxed focus:border-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground"
+                />
+                <p
+                  id={fieldId + "-text-help"}
+                  className="text-sm text-muted-foreground"
+                >
+                  At least 30 characters. Only this text is submitted in Paste
+                  text mode.
+                </p>
+              </div>
+            )}
+            <div className="space-y-3">
+              <p className="text-sm font-medium">
+                Or analyze a fictional sample
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {SAMPLE_DECKS.map((deck) => (
+                  <Button
+                    key={deck.id}
+                    variant="secondary"
+                    onClick={() => runSample(deck)}
+                  >
+                    {deck.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </fieldset>
+          {error && (
+            <div id={fieldId + "-error"}>
+              <Alert variant="error">{error}</Alert>
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              onClick={() => void analyze()}
+              loading={loading}
               disabled={loading}
-              onClick={() => runSample(d)}
-              className="flex flex-col items-start gap-0.5 border border-border px-3 py-2 text-left transition-colors hover:border-accent hover:bg-secondary disabled:opacity-50"
+              aria-describedby={error ? fieldId + "-error" : undefined}
             >
-              <span className="text-[14px] font-medium">{d.label}</span>
-              <span className="text-[12px] text-muted-foreground">{d.sector}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {error && <p className="text-[14px] text-danger">{error}</p>}
-
-      <button
-        type="button"
-        onClick={() => analyze()}
-        disabled={loading}
-        className="group inline-flex h-12 items-center gap-2 bg-primary px-8 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.5} />
-            Analyzing &amp; searching memory…
-          </>
-        ) : (
-          <>
-            Analyze deal
-            <ArrowRight
-              className="h-4 w-4 transition-transform group-hover:translate-x-0.5"
-              strokeWidth={1.5}
-            />
-          </>
-        )}
-      </button>
+              {loading
+                ? "Analyzing…"
+                : error
+                  ? "Retry analysis"
+                  : "Analyze deal"}
+              {!loading && (
+                <ArrowRight
+                  className="h-4 w-4"
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
+              )}
+            </Button>
+            {loading && (
+              <Button variant="secondary" onClick={cancel}>
+                Cancel analysis
+              </Button>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Analysis does not add this source to Company Memory. Browser saving
+            is optional and controlled above.
+          </p>
+        </>
+      )}
     </div>
   );
 }

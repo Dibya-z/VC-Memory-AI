@@ -50,7 +50,7 @@ making judgments.
 
 ## Tech stack
 
-- **Next.js 14 (App Router) + TypeScript** — unified full-stack app (UI + API).
+- **Next.js 16 (App Router) + React 19 + TypeScript** — unified full-stack app (UI + API).
 - **Tailwind CSS + a custom design system** — an editorial "confident restraint"
   UI (rtp.vc / Linear / Stripe-inspired): hairlines, square corners, one warm
   accent, generous whitespace.
@@ -69,6 +69,11 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design and RAG pipeline.
 ---
 
 ## Quick start
+
+Use Node 24 for the verified toolchain. After pulling the framework upgrade,
+stop any previous development server before installing and restarting it.
+For an existing database, apply the reviewed additive upload table change
+before enabling ingestion; see [upload rollout](docs/UPLOAD_IDEMPOTENCY.md).
 
 ```bash
 # 1. Install
@@ -93,6 +98,24 @@ schema), `npm run ingest:demo` (reset + re-ingest the demo corpus; isolated dev 
 
 For Memory Chat contracts, default verification, evaluation results, and guarded
 optional live checks, see [docs/MEMORY_CHAT.md](docs/MEMORY_CHAT.md).
+
+## Frontend verification
+
+The frontend now includes accessible modal navigation, a controlled upload queue,
+explicit analyzer sources, company search/pagination, and linked citation passages.
+Browser saving is optional and limited to the current tab; uploads are stored in
+the shared application workspace. The per-file upload limit is 4 MiB.
+
+```bash
+npx playwright install chromium   # once after npm install
+npm run test:frontend
+```
+
+The browser suite uses a disposable local app and read-only fixture data. It does
+not access the production database or AI providers. See the
+[implementation and verification record](docs/FRONTEND_AUDIT_RESOLUTION.md) and
+[current frontend design contract](docs/FRONTEND_DESIGN.md).
+Dependency upgrade details are recorded in [SECURITY_UPGRADE.md](docs/SECURITY_UPGRADE.md).
 
 A free Neon database (no credit card) takes ~2 minutes to set up — see
 [DEPLOY.md](./DEPLOY.md) for the exact connection-string steps.

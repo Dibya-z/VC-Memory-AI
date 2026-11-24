@@ -6,17 +6,17 @@
 
 import Link from "next/link";
 import { Chip, DecisionBadge } from "@/components/ui/badges";
-import { timeAgo } from "@/lib/utils";
+import { DateTime } from "@/components/ui/DateTime";
 import type { CompanyListItem } from "@/lib/types";
 
 export function CompanyCard({ company }: { company: CompanyListItem }) {
   return (
     <Link
       href={`/companies/${company.id}`}
-      className="group block border-t border-border pt-5 transition-colors duration-200 hover:border-accent"
+      className="group block min-w-0 border-t border-border pt-5 transition-colors duration-200 hover:border-accent"
     >
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="text-[17px] font-medium tracking-tight">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <h3 className="min-w-0 [overflow-wrap:anywhere] text-lg font-medium tracking-tight">
           {company.name}
         </h3>
         {company.decision && <DecisionBadge decision={company.decision} />}
@@ -30,7 +30,7 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
       )}
 
       {company.oneLiner && (
-        <p className="mt-4 line-clamp-2 text-[14px] leading-relaxed text-muted-foreground">
+        <p className="mt-4 line-clamp-2 [overflow-wrap:anywhere] text-sm leading-relaxed text-muted-foreground">
           {company.oneLiner}
         </p>
       )}
@@ -41,7 +41,11 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
         <span>
           {company.documentCount} doc{company.documentCount === 1 ? "" : "s"}
         </span>
-        {company.lastMetAt && <span>{timeAgo(company.lastMetAt)}</span>}
+        {company.lastMetAt && (
+          <span>
+            Last interaction <DateTime value={company.lastMetAt} relative />
+          </span>
+        )}
       </div>
     </Link>
   );

@@ -1,20 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 
-/** Two-column app frame: persistent left nav + top bar + scrollable content.
- *  On desktop the sidebar is fixed (unchanged); on mobile/tablet it collapses
- *  into a toggled drawer opened from the top bar. */
+/** A sticky desktop sidebar and one document scroller; mobile uses a modal drawer. */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
+  const menuRef = useRef<HTMLButtonElement>(null);
   return (
     <div className="flex min-h-screen">
-      <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <Sidebar
+        open={navOpen}
+        onClose={() => setNavOpen(false)}
+        returnFocusRef={menuRef}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar onMenu={() => setNavOpen(true)} />
-        <main className="flex-1 overflow-y-auto px-5 py-8 md:px-10 md:py-14 lg:px-16">
+        <TopBar
+          onMenu={() => setNavOpen(true)}
+          menuOpen={navOpen}
+          menuRef={menuRef}
+        />
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="min-w-0 flex-1 px-5 py-8 focus:outline-none md:px-10 md:py-14 lg:px-16"
+        >
           <div className="mx-auto max-w-[1200px]">{children}</div>
         </main>
       </div>

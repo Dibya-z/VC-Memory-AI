@@ -14,6 +14,13 @@
 
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
+import {
+  COMPANY_PAGE_SIZE,
+  UNRECORDED_FILTER,
+  mergeCompanyGroups,
+  type CompanyDirectoryOptions,
+  type CompanyFacets,
+} from "@/lib/company-discovery";
 import type {
   CompanyDetail,
   CompanyListItem,
@@ -56,7 +63,7 @@ export async function updateDocument(
     status?: string;
     error?: string | null;
     intelligence?: ExtractedIntelligence;
-  }
+  },
 ) {
   const { intelligence, ...rest } = data;
   return prisma.document.update({
@@ -73,7 +80,7 @@ export async function updateDocument(
 export async function setDocumentStatus(
   id: string,
   status: "processing" | "processed" | "failed",
-  error?: string
+  error?: string,
 ) {
   return prisma.document.update({
     where: { id },
@@ -92,20 +99,23 @@ export async function setDocumentStatus(
  *     document actually has a value; an empty field never clobbers a known one.
  *   - Arrays (founders, strengths, risks, concerns): UNION-ed across documents
  *     and de-duplicated, so nothing any document said is lost.
- * Matching is case-insensitive so slight name variants ("NimbusHealth" vs
- * "Nimbus Health") still resolve to one memory.
+ * Matching is case-insensitive and collapses repeated whitespace, so names
+ * such as "Nimbus Health" and "nimbus   health" resolve to one memory.
  */
 export async function upsertCompanyFromExtraction(
   e: ExtractedIntelligence,
-  opts: { metAt?: Date } = {}
+  opts: { metAt?: Date; db?: Prisma.TransactionClient } = {},
 ) {
+  const db = opts.db ?? prisma;
   const name = e.company.trim();
   const metAt = opts.metAt ?? new Date();
 
   // Preserve whitespace-normalized name matching across document uploads.
   // Comparing in JS is adequate at this prototype's corpus scale.
-  const all = await prisma.company.findMany();
-  const existing = all.find((c) => normalizeName(c.name) === normalizeName(name));
+  const all = await db.company.findMany();
+  const existing = all.find(
+    (c) => normalizeCompanyName(c.name) === normalizeCompanyName(name),
+  );
 
   if (existing) {
     const data: Prisma.CompanyUncheckedUpdateInput = { lastMetAt: metAt };
@@ -120,19 +130,31 @@ export async function upsertCompanyFromExtraction(
     if (e.competition) data.competition = e.competition;
     if (e.decision) data.decision = e.decision;
     if (e.decisionReason) data.decisionReason = e.decisionReason;
-    data.founders = unionFounders(existing.founders, e.founders) as unknown as Prisma.InputJsonValue;
-    data.strengths = unionStrings(existing.strengths, e.strengths) as unknown as Prisma.InputJsonValue;
-    data.risks = unionStrings(existing.risks, e.risks) as unknown as Prisma.InputJsonValue;
-    data.concerns = unionStrings(existing.concerns, e.concerns) as unknown as Prisma.InputJsonValue;
-    return prisma.company.update({ where: { id: existing.id }, data });
+    data.founders = unionFounders(
+      existing.founders,
+      e.founders,
+    ) as unknown as Prisma.InputJsonValue;
+    data.strengths = unionStrings(
+      existing.strengths,
+      e.strengths,
+    ) as unknown as Prisma.InputJsonValue;
+    data.risks = unionStrings(
+      existing.risks,
+      e.risks,
+    ) as unknown as Prisma.InputJsonValue;
+    data.concerns = unionStrings(
+      existing.concerns,
+      e.concerns,
+    ) as unknown as Prisma.InputJsonValue;
+    return db.company.update({ where: { id: existing.id }, data });
   }
 
-  return prisma.company.create({
+  return db.company.create({
     data: { name, ...buildCompanyData(e), firstMetAt: metAt, lastMetAt: metAt },
   });
 }
 
-function normalizeName(s: string): string {
+export function normalizeCompanyName(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
@@ -179,7 +201,7 @@ function unionFounders(existing: unknown, incoming?: Founder[]): Founder[] {
 /** Only includes fields the model actually produced, so a merge never overwrites
  *  a known value with an empty one. */
 function buildCompanyData(
-  e: ExtractedIntelligence
+  e: ExtractedIntelligence,
 ): Omit<Prisma.CompanyUncheckedCreateInput, "name"> {
   const d: Omit<Prisma.CompanyUncheckedCreateInput, "name"> = {};
   if (e.sector) d.sector = e.sector;
@@ -192,7 +214,8 @@ function buildCompanyData(
   if (e.traction) d.traction = e.traction;
   if (e.competition) d.competition = e.competition;
   if (e.founders) d.founders = e.founders as unknown as Prisma.InputJsonValue;
-  if (e.strengths) d.strengths = e.strengths as unknown as Prisma.InputJsonValue;
+  if (e.strengths)
+    d.strengths = e.strengths as unknown as Prisma.InputJsonValue;
   if (e.risks) d.risks = e.risks as unknown as Prisma.InputJsonValue;
   if (e.concerns) d.concerns = e.concerns as unknown as Prisma.InputJsonValue;
   if (e.decision) d.decision = e.decision;
@@ -205,7 +228,7 @@ function buildCompanyData(
 export async function saveChunks(
   documentId: string,
   companyId: string | null,
-  items: { content: string; ordinal: number; embedding: number[] }[]
+  items: { content: string; ordinal: number; embedding: number[] }[],
 ) {
   if (!items.length) return;
   await prisma.chunk.createMany({
@@ -235,25 +258,23 @@ export async function getDashboardStats(): Promise<DashboardStats> {
           id: true,
           filename: true,
           createdAt: true,
-          company: { select: { name: true } },
+          company: { select: { id: true, name: true } },
         },
       }),
     ]);
 
-  const sectorBreakdown = sectorGroups
-    .filter((g) => g.sector)
-    .map((g) => ({ sector: g.sector as string, count: g._count._all }))
-    .sort((a, b) => b.count - a.count);
-
-  const decisionBreakdown = decisionGroups
-    .filter((g) => g.decision)
-    .map((g) => ({ decision: g.decision as string, count: g._count._all }))
-    .sort((a, b) => b.count - a.count);
+  const sectorBreakdown = mergeCompanyGroups(
+    sectorGroups.map((g) => ({ value: g.sector, count: g._count._all })),
+  ).map((group) => ({ sector: group.value, count: group.count }));
+  const decisionBreakdown = mergeCompanyGroups(
+    decisionGroups.map((g) => ({ value: g.decision, count: g._count._all })),
+  ).map((group) => ({ decision: group.value, count: group.count }));
 
   const recentUploads = recent.map((d) => ({
     id: d.id,
     filename: d.filename,
     companyName: d.company?.name ?? null,
+    companyId: d.company?.id ?? null,
     createdAt: d.createdAt.toISOString(),
   }));
 
@@ -266,43 +287,169 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   };
 }
 
-export async function listCompanies(
-  filters: { sector?: string; decision?: string; stage?: string } = {}
-): Promise<CompanyListItem[]> {
-  const where: Prisma.CompanyWhereInput = {};
-  if (filters.sector) where.sector = filters.sector;
-  if (filters.decision) where.decision = filters.decision;
-  if (filters.stage) where.stage = filters.stage;
+function companyWhere(
+  filters: CompanyDirectoryOptions,
+): Prisma.CompanyWhereInput {
+  const clauses: Prisma.CompanyWhereInput[] = [];
+  for (const key of ["sector", "decision", "stage"] as const) {
+    const value = filters[key];
+    if (value === UNRECORDED_FILTER)
+      clauses.push({ OR: [{ [key]: null }, { [key]: "" }] });
+    else if (value)
+      clauses.push({ [key]: { equals: value, mode: "insensitive" } });
+  }
+  if (filters.q)
+    clauses.push({ name: { contains: filters.q, mode: "insensitive" } });
+  return clauses.length ? { AND: clauses } : {};
+}
 
-  const rows = await prisma.company.findMany({
-    where,
-    orderBy: [{ lastMetAt: "desc" }, { createdAt: "desc" }],
-    select: {
-      id: true,
-      name: true,
-      sector: true,
-      stage: true,
-      decision: true,
-      oneLiner: true,
-      lastMetAt: true,
-      strengths: true,
-      risks: true,
-      _count: { select: { documents: true } },
-    },
-  });
+const companyListSelect = {
+  id: true,
+  name: true,
+  sector: true,
+  stage: true,
+  decision: true,
+  oneLiner: true,
+  lastMetAt: true,
+  strengths: true,
+  risks: true,
+  _count: { select: { documents: true } },
+} satisfies Prisma.CompanySelect;
 
-  return rows.map((r) => ({
+type CompanyListRow = Prisma.CompanyGetPayload<{
+  select: typeof companyListSelect;
+}>;
+function companyListItem(r: CompanyListRow): CompanyListItem {
+  return {
     id: r.id,
     name: r.name,
     sector: r.sector,
     stage: r.stage,
     decision: r.decision,
     oneLiner: r.oneLiner,
-    lastMetAt: r.lastMetAt ? r.lastMetAt.toISOString() : null,
+    lastMetAt: r.lastMetAt?.toISOString() ?? null,
     strengthsCount: countArray(r.strengths),
     risksCount: countArray(r.risks),
     documentCount: r._count.documents,
-  }));
+  };
+}
+
+/** Compatibility list endpoint is bounded; the directory uses explicit pagination. */
+export async function listCompanies(
+  filters: CompanyDirectoryOptions = {},
+): Promise<CompanyListItem[]> {
+  const rows = await prisma.company.findMany({
+    where: companyWhere(filters),
+    take: 100,
+    orderBy: [{ lastMetAt: "desc" }, { createdAt: "desc" }, { id: "asc" }],
+    select: companyListSelect,
+  });
+  return rows.map(companyListItem);
+}
+
+/** Facets describe the whole memory, independently of the active filter/page. */
+export async function getCompanyFacets(): Promise<CompanyFacets> {
+  const [sectors, decisions, stages] = await Promise.all([
+    prisma.company.groupBy({ by: ["sector"] }),
+    prisma.company.groupBy({ by: ["decision"] }),
+    prisma.company.groupBy({ by: ["stage"] }),
+  ]);
+  function options(values: (string | null)[]) {
+    const unique = new Map<string, { value: string; label: string }>();
+    for (const value of values) {
+      if (!value)
+        unique.set(UNRECORDED_FILTER, {
+          value: UNRECORDED_FILTER,
+          label: "Not recorded",
+        });
+      else {
+        const key = value.toLocaleLowerCase("en");
+        if (!unique.has(key)) unique.set(key, { value, label: value });
+      }
+    }
+    return [...unique.values()].sort((a, b) => a.label.localeCompare(b.label));
+  }
+  return {
+    sectors: options(sectors.map((g) => g.sector)),
+    decisions: options(decisions.map((g) => g.decision)),
+    stages: options(stages.map((g) => g.stage)),
+  };
+}
+
+export async function searchCompanies(options: CompanyDirectoryOptions = {}) {
+  const where = companyWhere(options);
+  const [total, facets] = await Promise.all([
+    prisma.company.count({ where }),
+    getCompanyFacets(),
+  ]);
+  const pageCount = Math.max(1, Math.ceil(total / COMPANY_PAGE_SIZE));
+  const page = Math.min(Math.max(1, options.page ?? 1), pageCount);
+  const orderBy: Prisma.CompanyOrderByWithRelationInput[] =
+    options.sort === "name-asc"
+      ? [{ name: "asc" }, { id: "asc" }]
+      : options.sort === "name-desc"
+        ? [{ name: "desc" }, { id: "asc" }]
+        : [
+            { lastMetAt: { sort: "desc", nulls: "last" } },
+            { createdAt: "desc" },
+            { id: "asc" },
+          ];
+  const rows = await prisma.company.findMany({
+    where,
+    select: companyListSelect,
+    orderBy,
+    skip: (page - 1) * COMPANY_PAGE_SIZE,
+    take: COMPANY_PAGE_SIZE,
+  });
+  return {
+    companies: rows.map(companyListItem),
+    total,
+    page,
+    pageSize: COMPANY_PAGE_SIZE,
+    pageCount,
+    facets,
+  };
+}
+
+/** Never return a document through a different company's URL. */
+export async function getCompanyDocument(
+  companyId: string,
+  documentId: string,
+) {
+  const document = await prisma.document.findFirst({
+    where: { id: documentId, companyId },
+    select: {
+      id: true,
+      filename: true,
+      rawText: true,
+      docType: true,
+      createdAt: true,
+      company: { select: { id: true, name: true } },
+    },
+  });
+  if (!document || !document.company) return null;
+  return {
+    ...document,
+    company: document.company,
+    createdAt: document.createdAt.toISOString(),
+  };
+}
+
+export async function getCompanyIdentity(id: string) {
+  return prisma.company.findUnique({
+    where: { id },
+    select: { id: true, name: true },
+  });
+}
+
+export async function getCompanyDocumentIdentity(
+  companyId: string,
+  documentId: string,
+) {
+  return prisma.document.findFirst({
+    where: { id: documentId, companyId },
+    select: { filename: true, company: { select: { name: true } } },
+  });
 }
 
 export async function getCompany(id: string): Promise<CompanyDetail | null> {
@@ -350,7 +497,8 @@ export async function getCompany(id: string): Promise<CompanyDetail | null> {
       fileType: d.fileType,
       docType: d.docType,
       createdAt: d.createdAt.toISOString(),
-      intelligence: (d.intelligence as ExtractedIntelligence | null) ?? undefined,
+      intelligence:
+        (d.intelligence as ExtractedIntelligence | null) ?? undefined,
     })),
   };
 }
@@ -382,10 +530,12 @@ export async function getCompaniesByIds(ids: string[]) {
 
 /** Load candidate chunks (with embeddings + company name) for the local vector
  *  store, applying company include/exclude filters at the DB level. */
-export async function loadSearchChunks(opts: {
-  companyId?: string;
-  excludeCompanyId?: string;
-} = {}) {
+export async function loadSearchChunks(
+  opts: {
+    companyId?: string;
+    excludeCompanyId?: string;
+  } = {},
+) {
   const where: Prisma.ChunkWhereInput = {};
   if (opts.companyId) where.companyId = opts.companyId;
   if (opts.excludeCompanyId) where.companyId = { not: opts.excludeCompanyId };

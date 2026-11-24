@@ -42,7 +42,7 @@ model Company {
   competition   String?
 
   // Nested extracted arrays/objects retain their shape in PostgreSQL JSON.
-  founders Json? // [{ name, role, background }]
+  founders  Json? // [{ name, role, background }]
   strengths Json? // string[]
   risks     Json? // string[]
   concerns  Json? // string[]  — specific investment concerns
@@ -68,7 +68,7 @@ model Company {
 /// A raw source document uploaded by the user. Retained in full so the firm
 /// never loses the original context behind a conclusion.
 model Document {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
@@ -88,9 +88,27 @@ model Document {
 
   createdAt DateTime @default(now())
 
-  chunks Chunk[]
+  chunks          Chunk[]
+  uploadIngestion UploadIngestion?
 
   @@index([companyId])
+}
+
+/// One durable claim for a byte-identical upload in this shared workspace.
+/// Provider calls run outside transactions; token/lease fencing protects commits.
+model UploadIngestion {
+  key        String   @id
+  documentId String   @unique
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  ownerToken String
+  leaseUntil DateTime
+  state      String   @default("processing")
+  attempts   Int      @default(1)
+  metAt      DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([state, leaseUntil])
 }
 
 /// A chunk of document text plus its embedding vector. This is the RAG retrieval
@@ -104,8 +122,8 @@ model Chunk {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
 
-  content String
-  ordinal Int // position within the source document
+  content   String
+  ordinal   Int // position within the source document
   embedding Json? // number[] vector (e.g. 1024-dim from voyage-3.5)
 
   createdAt DateTime @default(now())

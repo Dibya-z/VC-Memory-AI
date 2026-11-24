@@ -12,7 +12,7 @@ import type { InvestmentBrief, SimilarCompany } from "@/lib/types";
 
 export function BriefReport({ brief }: { brief: InvestmentBrief }) {
   return (
-    <article className="space-y-10">
+    <article className="min-w-0 space-y-10 [overflow-wrap:anywhere]">
       <section>
         <h2 className="label-eyebrow mb-3">Overview</h2>
         <p className="text-[16px] leading-relaxed">{brief.overview}</p>
@@ -28,7 +28,11 @@ export function BriefReport({ brief }: { brief: InvestmentBrief }) {
 
       {(brief.strengths.length > 0 || brief.risks.length > 0) && (
         <div className="grid gap-x-10 gap-y-6 border-t border-border pt-8 sm:grid-cols-2">
-          <BulletList label="Strengths" items={brief.strengths} tone="success" />
+          <BulletList
+            label="Strengths"
+            items={brief.strengths}
+            tone="success"
+          />
           <BulletList label="Risks" items={brief.risks} tone="danger" />
         </div>
       )}
@@ -37,13 +41,24 @@ export function BriefReport({ brief }: { brief: InvestmentBrief }) {
         <section className="border-t border-border pt-8">
           <h2 className="label-eyebrow mb-1">Comparable past deals</h2>
           <p className="mb-6 text-[14px] text-muted-foreground">
-            What the firm concluded on the closest comparable companies.
+            Closest companies retrieved from available memory. Similarity
+            reflects related source text, not investment confidence or a
+            probability.
           </p>
           <div className="space-y-5">
             {brief.similarPastDeals.map((c) => (
               <SimilarRow key={c.companyId} c={c} />
             ))}
           </div>
+        </section>
+      )}
+      {brief.similarPastDeals.length === 0 && (
+        <section className="border-t border-border pt-8">
+          <h2 className="label-eyebrow mb-3">Comparable past deals</h2>
+          <p className="text-sm text-muted-foreground">
+            No comparable company was retrieved from the available memory for
+            this brief.
+          </p>
         </section>
       )}
 
@@ -56,7 +71,7 @@ export function BriefReport({ brief }: { brief: InvestmentBrief }) {
                 <span className="shrink-0 tabular-nums text-muted-foreground">
                   {i + 1}.
                 </span>
-                <span>{q}</span>
+                <span className="min-w-0 flex-1">{q}</span>
               </li>
             ))}
           </ol>
@@ -85,7 +100,9 @@ function SimilarRow({ c }: { c: SimilarCompany }) {
         {c.sector && <Chip>{c.sector}</Chip>}
         {c.decision && <DecisionBadge decision={c.decision} />}
         <span className="label-eyebrow ml-auto tabular-nums">
-          {Math.round(c.similarity * 100)}% match
+          <span title="Cosine similarity of retrieved text, from -1 to 1. This is not a confidence score.">
+            Similarity {c.similarity.toFixed(2)}
+          </span>
         </span>
       </div>
       {c.reason && (
@@ -100,7 +117,7 @@ function SimilarRow({ c }: { c: SimilarCompany }) {
 function Field({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
-    <div>
+    <div className="min-w-0">
       <p className="label-eyebrow mb-1.5">{label}</p>
       <p className="text-[15px] leading-relaxed">{value}</p>
     </div>

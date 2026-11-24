@@ -21,11 +21,11 @@ export function DecisionBadge({ decision }: { decision: string }) {
   const color = `hsl(${token})`;
   return (
     <span
-      className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.12em]"
+      className="inline-flex max-w-full items-center gap-1.5 text-xs font-medium uppercase tracking-[0.12em]"
       style={{ color }}
     >
       <span
-        className="h-[6px] w-[6px] rounded-full"
+        className="h-[6px] w-[6px] shrink-0 rounded-full"
         style={{ backgroundColor: color }}
       />
       {decision}
@@ -36,7 +36,7 @@ export function DecisionBadge({ decision }: { decision: string }) {
 /** Hairline tag for metadata like sector / stage. Square, no fill. */
 export function Chip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center border border-border px-2 py-0.5 text-[13px] text-muted-foreground">
+    <span className="inline-flex max-w-full items-center border border-border px-2 py-0.5 text-sm text-muted-foreground [overflow-wrap:anywhere]">
       {children}
     </span>
   );

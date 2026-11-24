@@ -4,23 +4,25 @@
  * uploads. Reads the query layer directly.
  */
 
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { MemoryGraphic } from "@/components/dashboard/MemoryGraphic";
 import { DecisionBadge } from "@/components/ui/badges";
 import { getDashboardStats } from "@/lib/db/queries";
-import { timeAgo } from "@/lib/utils";
+import { DateTime } from "@/components/ui/DateTime";
+import { UNRECORDED_FILTER } from "@/lib/company-discovery";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Dashboard" };
 
-export default async function DashboardPage() {
-  const stats = await getDashboardStats();
-
+export default function DashboardPage() {
   return (
     <div className="space-y-12 pb-12">
       {/* Editorial header — text left, knowledge-graph panel right */}
-      <header className="grid items-stretch gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)]">
+      <header className="grid items-stretch gap-12 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <div className="flex max-w-[620px] flex-col justify-center">
           <p className="label-eyebrow">Institutional Memory · Overview</p>
           <h1 className="mt-6 font-serif text-4xl font-normal leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
@@ -36,7 +38,7 @@ export default async function DashboardPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/chat"
-              className="group inline-flex h-11 items-center gap-2 bg-primary px-6 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              className="group inline-flex min-h-11 items-center justify-center gap-2 py-2 bg-primary px-6 text-[14px] font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               Ask the firm&apos;s memory
               <ArrowRight
@@ -46,100 +48,155 @@ export default async function DashboardPage() {
             </Link>
             <Link
               href="/analyzer"
-              className="inline-flex h-11 items-center gap-2 border border-border px-6 text-[14px] font-medium transition-colors hover:border-foreground/40 hover:bg-secondary"
+              className="inline-flex min-h-11 items-center justify-center gap-2 py-2 border border-border px-6 text-[14px] font-medium transition-colors hover:border-foreground/40 hover:bg-secondary"
             >
               Analyze a new deal
             </Link>
           </div>
         </div>
-        <div className="hidden items-center justify-end lg:flex">
+        <div className="hidden min-w-0 items-center justify-end xl:flex">
           <MemoryGraphic />
         </div>
       </header>
 
-      {stats.companyCount === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="space-y-5">
-          {/* Stats */}
-          <div className="grid gap-5 sm:grid-cols-3">
-            <StatCard
-              label="Companies in memory"
-              value={stats.companyCount}
-              hint="Startups the firm has reviewed"
-            />
-            <StatCard
-              label="Documents ingested"
-              value={stats.documentCount}
-              hint="Decks, memos, and notes"
-            />
-            <StatCard
-              label="Sectors tracked"
-              value={stats.sectorBreakdown.length}
-            />
-          </div>
-
-          {/* Breakdowns */}
-          <div className="grid gap-5 lg:grid-cols-2">
-            <Panel label="By decision">
-              {stats.decisionBreakdown.length === 0 ? (
-                <Muted>No decisions recorded yet.</Muted>
-              ) : (
-                <ul>
-                  {stats.decisionBreakdown.map((d) => (
-                    <li
-                      key={d.decision}
-                      className="flex items-center justify-between border-b border-border py-3 last:border-0"
-                    >
-                      <DecisionBadge decision={d.decision} />
-                      <span className="text-[18px] font-light tabular-nums">
-                        {d.count}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Panel>
-
-            <Panel label="By sector">
-              {stats.sectorBreakdown.length === 0 ? (
-                <Muted>No sectors yet.</Muted>
-              ) : (
-                <SectorBars data={stats.sectorBreakdown} />
-              )}
-            </Panel>
-          </div>
-
-          {/* Recent uploads */}
-          <Panel label="Recent uploads">
-            {stats.recentUploads.length === 0 ? (
-              <Muted>Nothing uploaded yet.</Muted>
-            ) : (
-              <ul>
-                {stats.recentUploads.map((u) => (
-                  <li
-                    key={u.id}
-                    className="flex items-center gap-4 border-b border-border py-3 last:border-0"
-                  >
-                    <span className="flex-1 truncate text-[15px]">
-                      {u.filename}
-                    </span>
-                    {u.companyName && (
-                      <span className="hidden truncate text-[15px] text-muted-foreground sm:block">
-                        {u.companyName}
-                      </span>
-                    )}
-                    <span className="label-eyebrow shrink-0">
-                      {timeAgo(u.createdAt)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
-        </div>
-      )}
+      <Suspense fallback={<DashboardLoading />}>
+        <DashboardData />
+      </Suspense>
     </div>
+  );
+}
+
+async function DashboardData() {
+  const stats = await getDashboardStats();
+  return stats.companyCount === 0 ? (
+    <EmptyState />
+  ) : (
+    <div className="space-y-5">
+      {/* Stats */}
+      <div className="grid gap-5 sm:grid-cols-3">
+        <StatCard
+          label="Companies in memory"
+          value={stats.companyCount}
+          hint="Startups the firm has reviewed"
+        />
+        <StatCard
+          label="Documents ingested"
+          value={stats.documentCount}
+          hint="Decks, memos, and notes"
+        />
+        <StatCard
+          label="Sectors tracked"
+          value={
+            stats.sectorBreakdown.filter(
+              (group) => group.sector !== "Not recorded",
+            ).length
+          }
+        />
+      </div>
+
+      {/* Breakdowns */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Panel label="By decision">
+          {stats.decisionBreakdown.length === 0 ? (
+            <Muted>No decisions recorded yet.</Muted>
+          ) : (
+            <ul>
+              {stats.decisionBreakdown.map((d) => (
+                <li
+                  key={d.decision}
+                  className="flex items-center justify-between border-b border-border py-3 last:border-0"
+                >
+                  <Link
+                    href={`/companies?decision=${encodeURIComponent(d.decision === "Not recorded" ? UNRECORDED_FILTER : d.decision)}`}
+                    className="text-link inline-flex min-h-11 items-center"
+                  >
+                    <DecisionBadge decision={d.decision} />
+                  </Link>
+                  <span className="text-[18px] font-light tabular-nums">
+                    {d.count}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel label="By sector">
+          {stats.sectorBreakdown.length === 0 ? (
+            <Muted>No sectors yet.</Muted>
+          ) : (
+            <SectorBars data={stats.sectorBreakdown} />
+          )}
+        </Panel>
+      </div>
+
+      {/* Recent uploads */}
+      <Panel label="Recent uploads">
+        {stats.recentUploads.length === 0 ? (
+          <Muted>Nothing uploaded yet.</Muted>
+        ) : (
+          <ul>
+            {stats.recentUploads.map((u) => (
+              <li
+                key={u.id}
+                className="flex min-w-0 flex-col items-start gap-2 border-b border-border py-3 last:border-0 sm:flex-row sm:items-center sm:gap-4"
+              >
+                {u.companyId ? (
+                  <Link
+                    href={`/companies/${encodeURIComponent(u.companyId)}/documents/${encodeURIComponent(u.id)}`}
+                    className="text-link min-w-0 w-full flex-1 [overflow-wrap:anywhere] text-[0.9375rem] sm:w-auto"
+                  >
+                    {u.filename}
+                  </Link>
+                ) : (
+                  <span className="min-w-0 w-full flex-1 [overflow-wrap:anywhere] text-[0.9375rem] sm:w-auto">
+                    {u.filename}
+                  </span>
+                )}
+                {u.companyName &&
+                  (u.companyId ? (
+                    <Link
+                      href={`/companies/${encodeURIComponent(u.companyId)}`}
+                      className="text-link hidden min-w-0 text-sm sm:block"
+                    >
+                      {u.companyName}
+                    </Link>
+                  ) : (
+                    <span className="hidden min-w-0 text-sm text-muted-foreground sm:block">
+                      {u.companyName}
+                    </span>
+                  ))}
+                <span className="label-eyebrow shrink-0">
+                  <DateTime value={u.createdAt} label="Uploaded" relative />
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
+    </div>
+  );
+}
+
+function DashboardLoading() {
+  return (
+    <section
+      aria-label="Loading dashboard data"
+      aria-busy="true"
+      className="space-y-5"
+    >
+      <p role="status" className="text-sm text-muted-foreground">
+        Loading company memory…
+      </p>
+      <div aria-hidden="true" className="grid gap-5 sm:grid-cols-3">
+        {[0, 1, 2].map((key) => (
+          <div
+            key={key}
+            className="h-36 border border-border bg-secondary motion-safe:animate-pulse"
+          />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -149,8 +206,13 @@ function SectorBars({ data }: { data: { sector: string; count: number }[] }) {
     <ul className="space-y-3">
       {data.map((d) => (
         <li key={d.sector} className="flex items-center gap-4">
-          <span className="w-36 shrink-0 truncate text-[14px]">{d.sector}</span>
-          <div className="h-1.5 flex-1 bg-muted">
+          <Link
+            href={`/companies?sector=${encodeURIComponent(d.sector === "Not recorded" ? UNRECORDED_FILTER : d.sector)}`}
+            className="text-link min-w-0 flex-1 [overflow-wrap:anywhere] text-sm"
+          >
+            {d.sector}
+          </Link>
+          <div className="h-1.5 w-20 shrink-0 bg-muted" aria-hidden="true">
             <div
               className="h-1.5 bg-accent"
               style={{ width: `${(d.count / max) * 100}%` }}
@@ -173,11 +235,8 @@ function EmptyState() {
       </h2>
       <p className="mt-4 text-[16px] leading-relaxed text-muted-foreground">
         Upload pitch decks, memos, or notes to start building your firm&apos;s
-        institutional memory — or run{" "}
-        <code className="bg-secondary px-1.5 py-0.5 text-[13px]">
-          npm run ingest:demo
-        </code>{" "}
-        to load the sample dataset.
+        institutional memory. You can also choose a fictional sample on the
+        upload page.
       </p>
       <Link
         href="/upload"

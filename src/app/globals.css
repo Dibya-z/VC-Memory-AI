@@ -25,29 +25,38 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 33%; /* #555 secondary text */
 
-    --accent: 18 81% 54%; /* #E8682A warm amber — used sparingly */
+    --accent: 18 81% 35%; /* Accessible warm accent text on white. */
+    --accent-art: 18 81% 54%; /* Lighter decorative graph marks only. */
     --accent-foreground: 0 0% 100%;
 
     --border: 0 0% 90%; /* #E5E5E5 hairline */
-    --input: 0 0% 80%; /* #CCC input border */
+    --input: 0 0% 55%; /* Visible field boundary against white. */
     --ring: 0 0% 7%; /* focus = near-black border, no glow */
 
     /* Semantic status only (data indicators, not decorative). */
     --success: 145 45% 33%; /* Invested */
-    --warning: 36 70% 42%; /* Tracking */
+    --warning: 36 75% 30%; /* Tracking: accessible small text. */
     --danger: 10 88% 40%; /* Passed / #CC2200-ish */
 
     --radius: 2px;
+    --control-height: 2.75rem;
+    --control-height-small: 2.5rem;
+    --layer-sticky: 20;
+    --layer-modal: 50;
   }
 
   * {
     @apply border-border;
   }
 
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
-    font-size: 16px;
+    font-size: 1rem;
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -59,21 +68,112 @@
   h3 {
     line-height: 1.1;
   }
+
+  :where(
+    a,
+    button,
+    input,
+    textarea,
+    select,
+    summary,
+    [tabindex]
+  ):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  :where(input, textarea, select) {
+    scroll-margin-block: 5rem;
+  }
 }
 
 @layer components {
   /* ALL-CAPS section label — the one repeating editorial motif. */
   .label-eyebrow {
-    @apply text-[11px] font-normal uppercase tracking-[0.15em] text-muted-foreground;
+    @apply text-xs font-normal uppercase tracking-[0.15em] text-muted-foreground;
+  }
+
+  .button,
+  .button-primary,
+  .button-secondary,
+  .button-ghost,
+  .icon-button {
+    @apply inline-flex shrink-0 items-center justify-center gap-2 border px-4 py-2 text-sm font-medium leading-snug transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+    min-height: var(--control-height);
+  }
+  .button-primary {
+    @apply border-primary bg-primary text-primary-foreground hover:bg-foreground/90;
+  }
+  .button-secondary {
+    @apply border-input bg-background text-foreground hover:bg-secondary;
+  }
+  .button-ghost {
+    @apply border-transparent bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground;
+  }
+  .button-sm {
+    min-height: var(--control-height-small);
+    @apply px-3;
+  }
+  .icon-button {
+    @apply h-11 w-11 p-0;
+  }
+  .field-label {
+    @apply mb-2 block text-sm font-medium;
+  }
+  .field-control {
+    @apply w-full min-w-0 border border-input bg-background px-3 py-2 text-base text-foreground disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground;
+    min-height: var(--control-height);
+  }
+  .status-message {
+    @apply border-l-2 border-border bg-secondary p-3 text-sm leading-relaxed [overflow-wrap:anywhere];
+  }
+  .text-link {
+    @apply underline underline-offset-4 hover:text-accent;
+  }
+  .skip-link {
+    @apply fixed left-4 top-4 z-[100] -translate-y-24 bg-primary px-4 py-3 text-primary-foreground focus:translate-y-0;
+  }
+
+  .ui-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: var(--layer-modal);
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 0;
+    padding: 1rem;
+    background: transparent;
+    color: hsl(var(--foreground));
+  }
+  .ui-dialog[open] {
+    display: flex;
+  }
+  .ui-dialog::backdrop {
+    background: hsl(var(--foreground) / 0.24);
+    backdrop-filter: blur(3px);
+  }
+  .dialog-panel {
+    @apply relative m-auto w-full min-w-0 max-w-3xl border border-border bg-background p-5 sm:p-10;
+  }
+  .ui-drawer {
+    padding: 0;
+    overflow: hidden;
+  }
+  .ui-drawer .dialog-panel {
+    @apply m-0 flex h-full w-64 max-w-[85vw] flex-col overflow-y-auto overscroll-contain px-5 py-6;
   }
 }
 
 @layer utilities {
-  /* Subtle fade-up on scroll/mount. Add `.reveal`; JS toggles `.is-in`,
-     but it also resolves visible without JS (no-FOUC fallback). */
+  /* Content remains visible before JavaScript; Reveal may add motion later. */
   .reveal {
-    opacity: 0;
-    transform: translateY(16px);
+    opacity: 1;
+    transform: none;
     transition:
       opacity 500ms ease,
       transform 500ms ease;
@@ -99,18 +199,46 @@
  * the brief flows naturally across pages.
  */
 @media print {
-  body > *:not(.brief-overlay) {
+  body:has(.brief-overlay[open]) > *:not(.brief-overlay) {
     display: none !important;
+  }
+
+  body,
+  html {
+    overflow: visible !important;
+  }
+  .app-sidebar,
+  .app-topbar,
+  .skip-link,
+  .no-print {
+    display: none !important;
+  }
+  #main-content {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  #main-content > div {
+    max-width: none !important;
+  }
+  a {
+    color: inherit !important;
   }
 
   .brief-overlay {
     position: static !important;
+    height: auto !important;
+    max-height: none !important;
     overflow: visible !important;
     background: none !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     padding: 0 !important;
     display: block !important;
+  }
+
+  .brief-overlay::backdrop {
+    background: none;
+    backdrop-filter: none;
   }
 
   .brief-sheet {

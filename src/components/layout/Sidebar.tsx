@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, type RefObject } from "react";
 import {
   LayoutDashboard,
   Upload,
@@ -11,6 +12,8 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Dialog } from "@/components/ui/Dialog";
+import { Button } from "@/components/ui/Button";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -23,38 +26,51 @@ const NAV = [
 export function Sidebar({
   open = false,
   onClose,
+  returnFocusRef,
 }: {
   open?: boolean;
   onClose?: () => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => {
+      if (desktop.matches && open) onClose?.();
+    };
+    closeOnDesktop();
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, [open, onClose]);
   return (
     <>
       {/* Desktop: persistent sidebar (unchanged on lg+) */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-background px-6 py-7 lg:flex">
+      <aside className="app-sidebar sticky top-0 hidden h-dvh w-64 shrink-0 self-start flex-col overflow-y-auto border-r border-border bg-background px-6 py-7 lg:flex">
         <SidebarNav />
       </aside>
 
       {/* Mobile / tablet: slide-in drawer */}
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
-            onClick={onClose}
-            aria-hidden="true"
-          />
-          <aside className="absolute left-0 top-0 flex h-full w-64 max-w-[80vw] flex-col border-r border-border bg-background px-6 py-7">
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close menu"
-              className="absolute right-4 top-4 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <X className="h-5 w-5" strokeWidth={1.5} />
-            </button>
-            <SidebarNav onNavigate={onClose} />
-          </aside>
-        </div>
-      )}
+      <Dialog
+        open={open}
+        onClose={() => onClose?.()}
+        id="workspace-menu"
+        title="Workspace navigation"
+        variant="drawer"
+        initialFocusRef={closeRef}
+        returnFocusRef={returnFocusRef}
+      >
+        <Button
+          ref={closeRef}
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          aria-label="Close menu"
+          className="absolute right-2 top-2"
+        >
+          <X className="h-5 w-5" strokeWidth={1.5} />
+        </Button>
+        <SidebarNav onNavigate={onClose} />
+      </Dialog>
     </>
   );
 }
@@ -64,14 +80,14 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
     <>
-      <Link href="/" className="mb-12 block" onClick={onNavigate}>
+      <Link href="/" className="mb-10 block pr-10" onClick={onNavigate}>
         <span className="font-serif text-lg tracking-tight text-foreground">
           VC Memory
         </span>
       </Link>
 
       <p className="label-eyebrow mb-4 px-3">Workspace</p>
-      <nav className="flex flex-col">
+      <nav aria-label="Workspace" className="mb-8 flex flex-col">
         {NAV.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -79,12 +95,13 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             <Link
               key={href}
               href={href}
+              aria-current={active ? "page" : undefined}
               onClick={onNavigate}
               className={cn(
                 "group relative flex items-center gap-3 py-2.5 pl-3 text-sm transition-colors duration-200",
                 active
                   ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               {active && (
@@ -93,7 +110,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
               <Icon
                 className={cn(
                   "h-[18px] w-[18px]",
-                  active ? "text-foreground" : "text-muted-foreground"
+                  active ? "text-foreground" : "text-muted-foreground",
                 )}
                 strokeWidth={1.5}
               />

@@ -24,7 +24,7 @@ export function BulletList({
   if (!items || items.length === 0) return null;
   const dot = TONE_TOKEN[tone];
   return (
-    <div>
+    <div className="min-w-0">
       <p className="label-eyebrow mb-2">{label}</p>
       <ul className="space-y-1 text-sm">
         {items.map((item, idx) => (
@@ -33,7 +33,9 @@ export function BulletList({
               className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
               style={{ backgroundColor: `hsl(${dot})` }}
             />
-            <span>{item}</span>
+            <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+              {item}
+            </span>
           </li>
         ))}
       </ul>

@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server";
-import { listCompanies } from "@/lib/db/queries";
+import { searchCompanies } from "@/lib/db/queries";
+import { parseCompanyDirectoryParams } from "@/lib/company-discovery";
 
-/**
- * GET /api/companies — list companies for the Company Memory page.
- * Supports query filters: ?sector=&decision=&stage=
- */
+/** GET /api/companies — bounded name search, facets, sorting and pagination. */
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic"; // reflects live DB; never prerender
-
+export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const companies = await listCompanies({
-    sector: searchParams.get("sector") ?? undefined,
-    decision: searchParams.get("decision") ?? undefined,
-    stage: searchParams.get("stage") ?? undefined,
-  });
-  return NextResponse.json({ companies });
+  const values = Object.fromEntries(
+    ["q", "sector", "decision", "stage", "sort", "page"].map((key) => {
+      const entries = searchParams.getAll(key);
+      return [key, entries.length > 1 ? entries : entries[0]];
+    }),
+  );
+  const options = parseCompanyDirectoryParams(values);
+  const result = await searchCompanies(options);
+  return NextResponse.json(result);
 }

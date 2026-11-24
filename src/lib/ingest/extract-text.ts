@@ -17,13 +17,13 @@ export interface ExtractedText {
 /** Below this many non-whitespace chars we treat extraction as a failure. */
 const MIN_USEFUL_CHARS = 20;
 
-function fileTypeOf(filename: string): ExtractedText["fileType"] {
+export function fileTypeOf(filename: string): ExtractedText["fileType"] {
   const lower = filename.toLowerCase();
   if (lower.endsWith(".pdf")) return "pdf";
   if (lower.endsWith(".md")) return "md";
   if (lower.endsWith(".txt")) return "txt";
   throw new Error(
-    `Unsupported file type: ${filename}. Upload a .pdf, .txt, or .md file.`
+    `Unsupported file type: ${filename}. Upload a .pdf, .txt, or .md file.`,
   );
 }
 
@@ -52,8 +52,8 @@ export async function extractText(file: {
     throw new Error(
       fileType === "pdf"
         ? "Couldn't read any text from this PDF — it may be image-only or scanned. " +
-          "Please upload a text-based PDF, or paste the content as a .txt/.md file."
-        : "This file appears to be empty. Please upload a document with content."
+            "Please upload a text-based PDF, or paste the content as a .txt/.md file."
+        : "This file appears to be empty. Please upload a document with content.",
     );
   }
 

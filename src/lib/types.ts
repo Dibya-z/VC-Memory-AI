@@ -155,6 +155,10 @@ export interface UploadResult {
   error?: string;
   companyId?: string;
   documentId?: string;
+  /** Another request owns this exact upload; checking again must not duplicate it. */
+  pending?: boolean;
+  retryAfterSeconds?: number;
+  reused?: boolean;
   intelligence?: ExtractedIntelligence;
 }
 
@@ -168,6 +172,7 @@ export interface DashboardStats {
     id: string;
     filename: string;
     companyName: string | null;
+    companyId: string | null;
     createdAt: string;
   }[];
 }

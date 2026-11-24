@@ -1,88 +1,205 @@
 "use client";
 
-/**
- * Sector / decision / stage filters for the Company Memory page. Drives
- * server-side filtering via the URL query string (shareable, no client fetch).
- * Square hairline selects, focus = near-black border (no glow).
- */
-
+import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
-import { SECTORS, STAGES, DECISIONS } from "@/config/constants";
+import {
+  companyDirectoryHref,
+  type CompanyFacets,
+  type CompanyFiltersValue,
+  type CompanyFacet,
+  type CompanySort,
+} from "@/lib/company-discovery";
+import { Button } from "@/components/ui/Button";
 
-type Filters = { sector?: string; decision?: string; stage?: string };
-
-export function CompanyFilters({ current }: { current: Filters }) {
-  const router = useRouter();
-
-  function apply(next: Filters) {
-    const merged = { ...current, ...next };
-    const qs = new URLSearchParams();
-    if (merged.sector) qs.set("sector", merged.sector);
-    if (merged.decision) qs.set("decision", merged.decision);
-    if (merged.stage) qs.set("stage", merged.stage);
-    const query = qs.toString();
-    router.push(query ? `/companies?${query}` : "/companies");
-  }
-
-  const hasAny = Boolean(current.sector || current.decision || current.stage);
-
+/** Draft all fields locally; one Apply submits one complete, shareable URL. */
+export function CompanyFilters(props: {
+  current: CompanyFiltersValue;
+  facets: CompanyFacets;
+}) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Select
-        value={current.sector ?? ""}
-        label="Sector"
-        options={SECTORS}
-        onChange={(v) => apply({ sector: v || undefined })}
-      />
-      <Select
-        value={current.decision ?? ""}
-        label="Decision"
-        options={DECISIONS}
-        onChange={(v) => apply({ decision: v || undefined })}
-      />
-      <Select
-        value={current.stage ?? ""}
-        label="Stage"
-        options={STAGES}
-        onChange={(v) => apply({ stage: v || undefined })}
-      />
-      {hasAny && (
-        <button
-          type="button"
-          onClick={() => router.push("/companies")}
-          className="inline-flex items-center gap-1.5 px-2 py-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <X className="h-3.5 w-3.5" strokeWidth={1.5} /> Clear
-        </button>
-      )}
-    </div>
+    <CompanyFilterForm key={companyDirectoryHref(props.current)} {...props} />
+  );
+}
+
+function CompanyFilterForm({
+  current,
+  facets,
+}: {
+  current: CompanyFiltersValue;
+  facets: CompanyFacets;
+}) {
+  const router = useRouter();
+  const id = useId();
+  const [draft, setDraft] = useState(current);
+  const [pending, startTransition] = useTransition();
+
+  function navigate(next: CompanyFiltersValue) {
+    startTransition(() =>
+      router.push(companyDirectoryHref(next), { scroll: false }),
+    );
+  }
+  function selectValue(value: string | undefined, options: CompanyFacet[]) {
+    return (
+      options.find(
+        (option) =>
+          option.value.toLocaleLowerCase("en") ===
+          value?.toLocaleLowerCase("en"),
+      )?.value ??
+      value ??
+      ""
+    );
+  }
+  function facetOptions(options: CompanyFacet[], value?: string) {
+    return value &&
+      !options.some(
+        (option) =>
+          option.value.toLocaleLowerCase("en") ===
+          value.toLocaleLowerCase("en"),
+      )
+      ? [...options, { value, label: `${value} (not currently recorded)` }]
+      : options;
+  }
+  return (
+    <form
+      action="/companies"
+      onSubmit={(event) => {
+        event.preventDefault();
+        navigate(draft);
+      }}
+      aria-label="Find companies"
+      aria-busy={pending}
+      className="w-full space-y-4"
+    >
+      <fieldset
+        disabled={pending}
+        className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <legend className="sr-only">Company search and filters</legend>
+        <label htmlFor={`${id}-q`} className="min-w-0 sm:col-span-2">
+          <span className="field-label">Company name</span>
+          <input
+            id={`${id}-q`}
+            type="search"
+            name="q"
+            value={draft.q ?? ""}
+            onChange={(event) =>
+              setDraft((value) => ({ ...value, q: event.target.value }))
+            }
+            maxLength={100}
+            placeholder="Search company names"
+            className="field-control"
+          />
+        </label>
+        <Select
+          id={`${id}-sector`}
+          name="sector"
+          label="Sector"
+          value={selectValue(draft.sector, facets.sectors)}
+          options={facetOptions(facets.sectors, draft.sector)}
+          onChange={(sector) =>
+            setDraft((value) => ({ ...value, sector: sector || undefined }))
+          }
+        />
+        <Select
+          id={`${id}-decision`}
+          name="decision"
+          label="Decision"
+          value={selectValue(draft.decision, facets.decisions)}
+          options={facetOptions(facets.decisions, draft.decision)}
+          onChange={(decision) =>
+            setDraft((value) => ({ ...value, decision: decision || undefined }))
+          }
+        />
+        <Select
+          id={`${id}-stage`}
+          name="stage"
+          label="Stage"
+          value={selectValue(draft.stage, facets.stages)}
+          options={facetOptions(facets.stages, draft.stage)}
+          onChange={(stage) =>
+            setDraft((value) => ({ ...value, stage: stage || undefined }))
+          }
+        />
+        <label htmlFor={`${id}-sort`} className="min-w-0">
+          <span className="field-label">Sort by</span>
+          <select
+            id={`${id}-sort`}
+            name="sort"
+            value={draft.sort ?? "recent"}
+            onChange={(event) =>
+              setDraft((value) => ({
+                ...value,
+                sort: event.target.value as CompanySort,
+              }))
+            }
+            className="field-control"
+          >
+            <option value="recent">Recent interaction</option>
+            <option value="name-asc">Name: A–Z</option>
+            <option value="name-desc">Name: Z–A</option>
+          </select>
+        </label>
+        <div className="flex flex-wrap items-end gap-3 sm:col-span-2">
+          <Button type="submit" loading={pending}>
+            Apply filters
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              setDraft({ sort: "recent" });
+              navigate({ sort: "recent" });
+            }}
+          >
+            Clear filters
+          </Button>
+        </div>
+      </fieldset>
+      <p
+        role="status"
+        aria-live="polite"
+        className="text-sm text-muted-foreground"
+      >
+        {pending
+          ? "Updating companies…"
+          : "Choose your filters, then select Apply filters."}
+      </p>
+    </form>
   );
 }
 
 function Select({
+  id,
+  name,
   value,
   label,
   options,
   onChange,
 }: {
+  id: string;
+  name: string;
   value: string;
   label: string;
-  options: readonly string[];
+  options: CompanyFacet[];
   onChange: (value: string) => void;
 }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-11 border border-input bg-background px-3 text-[14px] text-foreground transition-colors focus:border-foreground focus:outline-none"
-    >
-      <option value="">{label}: All</option>
-      {options.map((o) => (
-        <option key={o} value={o}>
-          {o}
-        </option>
-      ))}
-    </select>
+    <label htmlFor={id} className="min-w-0">
+      <span className="field-label">{label}</span>
+      <select
+        id={id}
+        name={name}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="field-control"
+      >
+        <option value="">All {label.toLowerCase()}s</option>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
