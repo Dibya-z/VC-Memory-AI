@@ -114,3 +114,116 @@ test("semantic explanations remain available, and plans reject arbitrary fields"
   assert.equal(queryPlanSchema.safeParse({ ...plan("Tell me about FlowAI"), sql: "DROP TABLE Company" }).success, false);
   assert.equal(queryPlanSchema.safeParse({ ...plan("Tell me about FlowAI"), filters: { arbitrary: true } }).success, false);
 });
+
+for (const question of [
+  "List companies we haven't invested in", "List companies we haven’t invested in",
+  "List companies we haven‘t invested in", "List companies we havenʼt yet invested in",
+  "List companies we didn't pass on", "List companies we didn’t pass on",
+  "List companies we weren't interested in", "List companies we weren’t interested in",
+  "List companies we aren't tracking", "List companies we aren’t tracking",
+  "List companies we’ve never invested in", "List companies we ain't tracking",
+]) {
+  test(`negative decision contraction clarifies instead of selecting an opposite: ${question}`, () => {
+    const result = plan(question);
+    assert.equal(result.intent, "clarification");
+    assert.equal(result.filters.decision, undefined);
+  });
+}
+
+test("decision negation preserves affirmative filters and literal company apostrophes", () => {
+  assert.deepEqual(plan("List companies we have invested in").filters, { decision: "Invested" });
+  assert.deepEqual(plan("List companies we were interested in").filters, { decision: "Interested" });
+  const result = planMemoryQuery({ message: "What are Founder’s AI's risks?" }, [company("apostrophe", "Founder’s AI", "SaaS")]);
+  assert.equal(result.intent, "company_recall");
+  assert.deepEqual(result.companyIds, ["apostrophe"]);
+});
+
+for (const [question, start, end] of [
+  ["List companies met between 2025-01-01 and 2025-06-30", "2025-01-01T00:00:00.000Z", "2025-06-30T23:59:59.999Z"],
+  ["List companies met from 2025-01-01 to 2025-06-30", "2025-01-01T00:00:00.000Z", "2025-06-30T23:59:59.999Z"],
+  ["List companies met between January 2025 and June 2025", "2025-01-01T00:00:00.000Z", "2025-06-30T23:59:59.999Z"],
+  ["List companies met from 2024 through 2025", "2024-01-01T00:00:00.000Z", "2025-12-31T23:59:59.999Z"],
+  ["List companies met from 2025 until 2026", "2025-01-01T00:00:00.000Z", "2026-12-31T23:59:59.999Z"],
+] as const) {
+  test(`inclusive interaction range retains both bounds: ${question}`, () => {
+    const result = plan(question);
+    assert.equal(result.intent, "filtered_list");
+    assert.deepEqual(result.filters, { metAfter: start, metBefore: end });
+  });
+}
+
+for (const question of [
+  "List companies met between January and June 2025", "List companies met between 2025-01-01 and",
+  "List companies met between 2025-06-30 and 2025-01-01", "List companies met from 2025-01-01 to 2025-02-30",
+  "List companies met after 2025-01-01 before March", "List companies met since 2025-01-01 and before sometime in June",
+  "List companies met in 2025 and 2026", "List companies met in 2025-1-1", "List companies met 2025-01-01 - 2025-06-30",
+  "List companies met in June", "List companies met on Monday", "List companies met on the fifth of July",
+  "List companies met yesterday", "List companies met from winter to spring",
+]) {
+  test(`unconsumed or invalid date constraints clarify: ${question}`, () => {
+    const result = plan(question);
+    assert.equal(result.intent, "clarification");
+    assert.deepEqual(result.filters, {});
+  });
+}
+
+test("multiple valid date constraints intersect without overwriting the tighter bound", () => {
+  assert.deepEqual(plan("List companies met since 2025-04-01 since 2025-01-01 before 2025-10-01").filters, {
+    metAfter: "2025-04-01T00:00:00.000Z", metBefore: "2025-09-30T23:59:59.999Z",
+  });
+});
+
+for (const question of [
+  "How many documents are stored in memory?", "How many Documents for CodeFlow AI?", "How many chunks are there?",
+  "How many founders does FlowAI have?", "How many companies and documents are in memory?", "Count all documents",
+  "What is the document count?", "Count FlowAI documents", "What is the number of documents in memory?",
+  "What is the total of chunks in memory?", "How many companies have documents?", "How many companies with no documents?",
+]) {
+  test(`unsupported count targets or predicates never become company counts: ${question}`, () => {
+    assert.equal(plan(question).intent, "clarification");
+  });
+}
+
+for (const question of [
+  "How many companies are in memory?", "How Many Companies Are In Memory?", "How many startups do we have?",
+  "How many deals are there?", "Count all companies", "What is the company count?", "What is the number of companies in memory?",
+]) {
+  test(`supported company tally retains its count target: ${question}`, () => {
+    const result = plan(question);
+    assert.equal(result.intent, "count");
+    assert.deepEqual(result.filters, {});
+  });
+}
+
+for (const question of [
+  "What are the Key Risks for CodeFlow AI?", "What are the Business Model and Key Risks for CodeFlow AI?",
+  "What are CodeFlow AI's Founding Team and Business Model?", "What are the Core Risks for CodeFlow AI?",
+  "Who founded CodeFlow AI and what are its Key Risks?", "Tell me about the Enterprise Valuation for CodeFlow AI.",
+]) {
+  test(`capitalized topics do not override a company resolved in an entity position: ${question}`, () => {
+    const result = plan(question);
+    assert.equal(result.intent, "company_recall");
+    assert.deepEqual(result.companyIds, ["code"]);
+    assert.equal(result.unknownCompany, undefined);
+  });
+}
+
+for (const question of [
+  "Compare CodeFlow AI and Orchid Robotics on Key Risks.", "Compare Orchid Robotics and CodeFlow AI on Key Risks.",
+  "Compare CodeFlow AI with Orchid Robotics on Key Risks.", "Compare Orchid Robotics with CodeFlow AI on Key Risks.",
+  "Compare Key Risks between CodeFlow AI and Orchid Robotics", "Compare Key Risks between Orchid Robotics and CodeFlow AI",
+  "What are the Key Risks for CodeFlow AI, as opposed to Orchid Robotics?", "What are the risks for CodeFlow AI and Orchid Robotics?",
+  "What are the risks for Orchid Robotics and CodeFlow AI?", "Orchid Robotics vs CodeFlow AI: compare revenue.",
+]) {
+  test(`mixed known and unknown references retain the actual unknown operand: ${question}`, () => {
+    const result = plan(question);
+    assert.equal(result.unknownCompany, "Orchid Robotics");
+    assert.deepEqual(result.companyIds, ["code"]);
+  });
+}
+
+test("capitalized collection nouns stay inventory and filtered list requests", () => {
+  assert.equal(plan("List All Companies").intent, "inventory");
+  assert.equal(plan("Show All Passed Companies").intent, "filtered_list");
+  assert.deepEqual(plan("Show All Passed Companies").filters, { decision: "Passed" });
+});
