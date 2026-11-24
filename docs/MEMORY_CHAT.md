@@ -157,6 +157,31 @@ provider checks are required. Natural-language detection remains conservative:
 unsupported phrasing clarifies or fails validation, and source provenance does
 not establish semantic entailment.
 
+## Further PR #1 parsing boundaries
+
+The next review identified three cases that the previous 213 passing tests did
+not cover. All three now have unit and production-orchestration regressions:
+
+| Finding | Implemented behavior | New test file |
+|---|---|---|
+| Coordinated explanations mistaken for companies | Interrogative/imperative clause boundaries keep resolved companies in scope. Actual unknown comparison operands remain detected in either order and after explanatory clauses; quoted literal names and catalog identity retain precedence. | `tests/memory-explanation-boundary.test.ts` — 27 tests |
+| Negated date ranges executed positively | Negation attached to a temporal predicate clarifies before any list/count query. Straight/curly contractions and between/from/in/during forms are covered. Affirmative inclusive bounds, empty results and invalid-date clarification retain `Company.lastMetAt` semantics. | `tests/memory-negated-date.test.ts` — 34 tests |
+| Inventory plus an implicit total rejected | A clear company inventory supplies the target for its same-request count. Exact returned rows produce the list and total without embedding/generation. Qualitative count(s)-as questions use company evidence; explicit incompatible document/chunk counts still clarify. | `tests/memory-inventory-count.test.ts` — 25 tests |
+
+Verification: **299 tests passed** (the previous 213 plus 86 new cases), all 15
+fixture baseline/control evaluations passed, and lint, TypeScript, production
+build and `git diff --check` passed. Tests assert actual answers, returned IDs,
+used citations and query/provider calls, including a sixth company and empty
+filtered inventories. The existing citation/fabrication safeguards, five prior
+review fixes and request-scoped conversation tests remain passing.
+
+The build used a temporary snapshot of this clone with inert database settings
+to preserve the running port-3001 development server. No schema/dependency
+changes, production database access, resets, reseeding, or live AI provider calls
+were needed. Parsing remains a conservative English grammar; negative date
+complements are deliberately unsupported and request an included date range.
+Fixture/provider mocks verify orchestration, not live model answer accuracy.
+
 ## Optional live evaluation
 
 No live database or provider evaluation was run for this change. No local `.env`
