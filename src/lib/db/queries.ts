@@ -3,13 +3,13 @@
  * rather than touching `prisma` directly, so JSON-field (de)serialization and
  * common filters live in one place.
  *
- * Implemented so far (Feature 1 — ingestion writes):
+ * Ingestion writes:
  *   - createDocument / updateDocument / setDocumentStatus
  *   - upsertCompanyFromExtraction(extraction)  -> ingestion writes here
  *   - saveChunks(documentId, companyId, items)
  *
- * Planned (later features): listCompanies, getCompany, getDashboardStats,
- * allChunksWithEmbeddings (feeds the local vector store).
+ * Dashboard/company reads and local vector candidates live below. Memory Chat
+ * has its own typed, read-only adapter in lib/ai/memory-repository.ts.
  */
 
 import { Prisma } from "@prisma/client";
@@ -102,8 +102,8 @@ export async function upsertCompanyFromExtraction(
   const name = e.company.trim();
   const metAt = opts.metAt ?? new Date();
 
-  // SQLite + Prisma can't do `mode: "insensitive"`, so compare in JS. Fine at
-  // the hundreds-of-companies scale of this app.
+  // Preserve whitespace-normalized name matching across document uploads.
+  // Comparing in JS is adequate at this prototype's corpus scale.
   const all = await prisma.company.findMany();
   const existing = all.find((c) => normalizeName(c.name) === normalizeName(name));
 

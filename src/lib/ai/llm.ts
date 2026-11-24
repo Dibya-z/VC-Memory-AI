@@ -57,7 +57,8 @@ export type CompletionProvider = (request: CompletionRequest) => Promise<Complet
 /**
  * Translate provider errors into clean, user-facing messages. The Groq free tier
  * enforces a daily token cap; without this a reviewer would see a raw 429 JSON
- * blob. Rate-limit errors are not retried (retrying won't help).
+ * blob. These errors do not trigger JSON-shape retries; the SDK's transport
+ * retry policy still applies.
  */
 function asFriendlyError(e: unknown): Error {
   const status = (e as { status?: number } | null)?.status;

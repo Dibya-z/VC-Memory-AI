@@ -24,9 +24,10 @@ under Voyage's free-tier rate limit. Reviewers won't hit a backoff.
 
 ---
 
-## 2. Point local env at Neon and seed it (5–10 min)
+## 2. Prepare an isolated development Neon branch
 
-Edit your local `.env` (see `.env.example`):
+Verify a dedicated development database or Neon branch in the provider dashboard.
+Keep its credentials separate from production, then edit local `.env` (see `.env.example`):
 
 ```bash
 DATABASE_URL="postgresql://...-pooler...neon.tech/...?sslmode=require"   # pooled
@@ -35,7 +36,8 @@ GROQ_API_KEY="gsk_..."
 VOYAGE_API_KEY="pa-..."
 ```
 
-Then create the tables and load the demo corpus **into Neon**:
+Only on that verified development target, create tables and load the demo corpus.
+`setup`, `ingest:demo`, and `db:seed` clear existing application data:
 
 ```bash
 npx prisma generate          # regenerate client for the postgresql provider
@@ -47,7 +49,7 @@ npm run ingest:demo          # seed 5 companies + embeddings (one-time Voyage co
 expected; let it finish. When it prints "5 past deals are now in memory", your
 Neon DB is ready.
 
-> Sanity check: `npm run dev` locally now reads from Neon — the dashboard should
+> Sanity check: `npm run dev` at localhost:3001 now reads from the development branch — the dashboard should
 > show 5 companies and Memory Chat should answer.
 
 ---
@@ -92,14 +94,12 @@ and ask **Memory Chat** anything.
 - **Function timeout:** the four AI routes (`/api/chat`, `/api/analyze`,
   `/api/brief`, `/api/upload`) export `maxDuration = 60` so LLM calls don't hit
   Vercel's 10s default. Groq is fast, so this is just headroom.
-- **Local dev and prod share one Neon DB.** The seed resets data each run, so
-  re-running `npm run ingest:demo` cleans it anytime. If you'd rather isolate
-  dev, create a Neon **branch** and use its URLs locally.
-- **Re-seeding production:** run `npm run ingest:demo` locally with `.env`
-  pointed at Neon — it updates the same database the live app reads.
-- **Reviewers uploading samples** adds companies to the shared demo DB. Harmless;
-  re-seed to reset to the canonical 5.
-- **Switching back to SQLite for offline dev** (optional): set
-  `provider = "sqlite"` and `DATABASE_URL="file:./dev.db"`, remove `directUrl`,
-  then `npm run db:push && npm run ingest:demo`. Keep the repo on `postgresql`
-  for Vercel.
+- **Separate development and production.** Local work and evaluations must use a
+  dedicated development database or Neon branch. Verify both connection targets
+  before using any schema or ingestion command.
+- **Destructive demo loading:** `setup`, `ingest:demo`, and `db:seed` clear data.
+  Never run them against a shared production database to inspect or test changes.
+- Production data changes and deployments require an explicit operational plan.
+  The optional Memory Chat evaluation only reads, and refuses unverified targets;
+  see [docs/MEMORY_CHAT.md](docs/MEMORY_CHAT.md).
+- Keep PostgreSQL/Neon as configured; fixture tests need no schema changes.
