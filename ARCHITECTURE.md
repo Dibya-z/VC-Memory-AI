@@ -23,7 +23,7 @@ history rather than generic knowledge.
         │         Embeddings             lib/embeddings (Voyage)
         ▼            │
  Company (memory)    ▼
- structured rows   Chunk + vector        Prisma (SQLite)
+ structured rows   Chunk + vector        Prisma (PostgreSQL)
         │            │
         └─────┬──────┘
               ▼
@@ -64,7 +64,7 @@ Each seam is an interface or a small module so pieces can be swapped:
 - **Vector store** — callers depend on the `VectorStore` interface; the default
   `LocalVectorStore` can be replaced with Chroma/Pinecone/pgvector with no
   caller changes.
-- **Database** — Prisma; change the datasource to Postgres without model edits.
+- **Database** — Prisma 6 with PostgreSQL/Neon; development and production targets stay separate.
 
 ---
 
@@ -83,14 +83,15 @@ Each seam is an interface or a small module so pieces can be swapped:
 
 ## Data model
 
-See [`prisma/schema.prisma`](./prisma/schema.prisma). Five models:
+See [`prisma/schema.prisma`](./prisma/schema.prisma). Three models:
 
 - **Company** — extracted structured intelligence (the memory). JSON fields hold
   arrays (`founders`, `strengths`, `risks`, `concerns`).
 - **Document** — the original source text + metadata, retained in full.
 - **Chunk** — embedded text slices; the RAG retrieval unit (`embedding` = JSON
   `number[]`).
-- **Conversation / Message** — chat history, with citations on assistant turns.
+
+Chat context is a bounded request payload; no conversation tables are required.
 
 ---
 
@@ -105,12 +106,11 @@ See [`prisma/schema.prisma`](./prisma/schema.prisma). Five models:
 - **Local cosine vector search over a hosted vector DB** — at the
   hundreds/thousands-of-docs scale this is fast, free, and dependency-light, so
   the demo runs with only two API keys. The interface keeps the upgrade path open.
-- **SQLite over hosted Postgres** — zero-config; `npm run setup` produces a
-  working DB instantly. One-line swap to Postgres for production.
+- **PostgreSQL/Neon** — retained company records, original documents, and vectors;
+  default fixture tests use an injected repository without database access.
 - **Structured extraction via JSON mode + Zod** — Groq JSON Object mode plus a
   Zod-validated retry yields clean, validated intelligence instead of brittle
-  parsing. Auto-upgrades to strict `json_schema` constrained decoding on
-  `openai/gpt-oss-*` models.
+  parsing. Strict schema decoding is currently disabled; Zod validates the output.
 - **AI assists, never decides** — every recommendation uses hedged language
   ("Needs partner review", "Interesting signal", "Needs more diligence").
 
@@ -127,16 +127,21 @@ Handled at the ingestion and API boundaries:
 
 ---
 
-## Build plan
+## Memory Chat
 
-The scaffold is in place; features fill in the `TODO(impl)` seams in this order:
+The request carries a bounded user/assistant history and optional active company.
+The planner resolves references from user turns/catalog identity, validates its
+allowlisted plan, and routes exact lists/counts to typed Prisma reads. Named
+company questions read complete short sources within a 24,000-character evidence
+budget. Comparisons divide the budget across companies. Semantic searches use
+Voyage/cosine candidates with conservative lexical subject corroboration.
 
-1. **Ingestion path** — `extract-text` → `chunk` → `embed` → `pipeline`, plus
-   `ai/extract` (structured outputs) and `db/queries` writes.
-2. **Demo data** — author `data/demo/*` documents; wire `seed` + `ingest:demo`.
-3. **Read surfaces** — `db/queries` + Dashboard + Company Memory pages.
-4. **Vector retrieval** — `LocalVectorStore.search`.
-5. **Memory chat** — `ai/chat` + `/api/chat` + `ChatWindow`.
-6. **Deal analyzer** — `ai/analyze` + `/api/analyze` + analyzer UI.
-7. **Investment brief** — `ai/brief` + `/api/brief` + brief UI.
-8. **Polish** — loading/error states, empty states, decision badges.
+Each evidence item retains a stable ID, company/document identity, exact source
+character offsets, source-date text when explicit, and separate upload metadata.
+Generated fact/interpretation blocks require exact supporting quotes. The server
+validates IDs, excerpts, output shape and finish metadata, then renders plain text
+and only used citations. Truncated/invalid answers are withheld. Exact quote
+provenance does not establish semantic entailment.
+
+See [docs/MEMORY_CHAT.md](docs/MEMORY_CHAT.md) for contracts, verification, fixture
+comparison with the baseline, live safety guards, and remaining limitations.

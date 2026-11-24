@@ -4,15 +4,20 @@
   "private": true,
   "description": "AI Second Brain for Lean Venture Capital Teams — a memory layer that remembers every startup interaction.",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "prisma generate && next build",
-    "start": "next start",
+    "start": "next start -p 3001",
     "lint": "next lint",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "ingest:demo": "tsx scripts/ingest-demo.ts",
-    "setup": "prisma db push && npm run ingest:demo"
+    "setup": "prisma db push && npm run ingest:demo",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:memory": "node --import tsx --test tests/memory-*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "eval:memory": "node --import tsx scripts/evaluate-memory.ts",
+    "eval:memory:live": "node --import tsx scripts/evaluate-memory-live.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

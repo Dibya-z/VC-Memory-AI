@@ -2,7 +2,7 @@
  * VectorStore — the retrieval seam.
  *
  * The app talks to this interface, never a concrete store. The default
- * implementation (local-store.ts) reads embeddings straight out of SQLite and
+ * implementation (local-store.ts) reads embeddings straight out of PostgreSQL and
  * does cosine similarity in memory — perfect for a prototype at the hundreds/
  * thousands-of-docs scale, with zero extra infrastructure. To move to ChromaDB,
  * Pinecone, or Supabase pgvector later, implement this same interface.

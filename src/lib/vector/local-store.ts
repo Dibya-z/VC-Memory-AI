@@ -1,5 +1,5 @@
 /**
- * Local, dependency-free VectorStore: loads chunk embeddings from SQLite and
+ * Local, dependency-free VectorStore: loads chunk embeddings from PostgreSQL and
  * ranks them by cosine similarity in memory. No external vector DB required.
  *
  * For thousands of chunks this is plenty fast; revisit only if the corpus grows

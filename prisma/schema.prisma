@@ -41,7 +41,7 @@ model Company {
   traction      String?
   competition   String?
 
-  // Array/object fields are stored as JSON (SQLite has no native arrays).
+  // Nested extracted arrays/objects retain their shape in PostgreSQL JSON.
   founders Json? // [{ name, role, background }]
   strengths Json? // string[]
   risks     Json? // string[]

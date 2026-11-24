@@ -77,22 +77,29 @@ npm install
 # 2. Configure environment (see .env.example)
 cp .env.example .env        # add Neon DATABASE_URL + DIRECT_URL, GROQ_API_KEY, VOYAGE_API_KEY
 
-# 3. Create the tables and ingest the demo corpus (runs the real pipeline)
-npm run setup               # = prisma db push && ingest:demo
+# 3. Generate the client and run fixture tests (no database/provider access)
+npx prisma generate
+npm test
+
+# Optional: ONLY on a verified isolated dev database, create tables and load demo
+# npm run setup             # destructive: db push + reset/re-ingest
 
 # 4. Run
-npm run dev                 # http://localhost:3000
+npm run dev                 # http://localhost:3001
 ```
 
 Useful scripts: `npm run db:studio` (browse the DB), `npm run db:push` (apply
-schema), `npm run ingest:demo` (reset + re-ingest the demo corpus).
+schema), `npm run ingest:demo` (reset + re-ingest the demo corpus; isolated dev only).
+
+For Memory Chat contracts, default verification, evaluation results, and guarded
+optional live checks, see [docs/MEMORY_CHAT.md](docs/MEMORY_CHAT.md).
 
 A free Neon database (no credit card) takes ~2 minutes to set up — see
 [DEPLOY.md](./DEPLOY.md) for the exact connection-string steps.
 
 > **Demo tip:** the free Voyage embeddings tier is ~3 requests/minute, and each
-> chat / analyze / brief makes one embedding call. Run `npm run ingest:demo`
-> beforehand and pace live actions a few seconds apart so you never wait on a
+> semantic search / analyze / brief can make an embedding call. Use an isolated
+> demo database and pace live actions to avoid waiting on a
 > rate-limit backoff mid-demo. (Adding a Voyage card stays free and lifts the
 > limit, if you prefer headroom.)
 
@@ -100,8 +107,8 @@ A free Neon database (no credit card) takes ~2 minutes to set up — see
 
 ## Status
 
-All four features above are **implemented and verified working end-to-end** (on
-the live demo and locally) — this is a complete prototype, not a scaffold.
+All four features are implemented. Current Memory Chat verification uses isolated
+fixtures and mocked providers; see the dated evaluation report for its limits.
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the system design and RAG pipeline.
 
@@ -111,6 +118,6 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the system design and RAG pipeline.
 
 Hosted on **Vercel** (app) + **Neon** (Postgres) — both free, no credit card.
 Because chunk embeddings are stored during seeding, the live app computes only a
-single query embedding per action, staying well under the Voyage free-tier limit.
+query embedding for semantic searches; named-company chat can read retained sources directly.
 Full step-by-step (Neon setup → seed → Vercel env vars) is in
 [DEPLOY.md](./DEPLOY.md).
