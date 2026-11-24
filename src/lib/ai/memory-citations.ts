@@ -25,6 +25,39 @@ const LABELS = {
 } as const;
 
 /**
+ * Negation belongs to one source mention and its clause, not to the entire
+ * block. An absence followed by "but a later memo says ..." must not authorize
+ * that later memo. Keep this grammar conservative; this is not entailment.
+ */
+function isSourceAbsence(text: string, start: number, end: number): boolean {
+  const boundary = /[.!?;:\n]|\b(?:but|however|yet|although|whereas|nevertheless|and)\b/i;
+  const before = text.slice(0, start).split(boundary).pop()!.trim()
+    .replace(/[’‘]/g, "'");
+  const after = text.slice(end).split(boundary)[0].trim()
+    .replace(/[’‘]/g, "'");
+  const descriptors = "(?:(?:a|an|any|the|new|later|subsequent|updated|follow[- ]?up)\\s+)*";
+  const negativeDeterminer = new RegExp(`(?:^|\\s)(?:no|without|missing|unavailable)\\s+${descriptors}$`, "i");
+  const negativeAction = new RegExp(
+    `\\b(?:(?:have|has|had|do|does|did|can|could)\\s+not|haven't|hasn't|hadn't|don't|doesn't|didn't|can't|couldn't)\\s+(?:yet\\s+)?(?:find|found|record|recorded|retain|retained|receive|received|capture|captured|store|stored|locate|located|include|contain|have)\\s+${descriptors}$`, "i"
+  );
+  const negativeExistential = new RegExp(
+    `\\bthere\\s+(?:(?:is|are|was|were)\\s+not|isn't|aren't|wasn't|weren't)\\s+${descriptors}$`, "i"
+  );
+  const presence = "(?:available|retained|recorded|present|stored|captured|uploaded|found|provided|supplied|received|exists?)";
+  const positivePresence = new RegExp(`^(?:(?:is|are|was|were|has been|have been)\\s+)?(?:currently\\s+)?${presence}\\b`, "i");
+  const negativePresence = new RegExp(
+    `^(?:(?:is|are|was|were|has|have|had)\\s+not|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't)\\s+(?:been\\s+)?(?:currently\\s+)?${presence}\\b|^(?:is|are|was|were)\\s+(?:currently\\s+)?(?:unavailable|missing|absent)\\b`, "i"
+  );
+  const contextOnly = /^(?:(?:in|within|for|about|on)\b[^,]*)?$/i.test(after);
+  if (negativeDeterminer.test(`${before} `)) {
+    // Do not read double negatives as an absence assertion.
+    return !negativePresence.test(after) && (contextOnly || positivePresence.test(after));
+  }
+  if (negativeAction.test(`${before} `) || negativeExistential.test(`${before} `)) return contextOnly;
+  return negativePresence.test(after);
+}
+
+/**
  * Enforces provenance and output structure, not semantic entailment. A quote may
  * be authentic yet fail to support a paraphrase; evaluation must assess that too.
  * Retrieved text cannot create references, titles, links, HTML, or output roles.
@@ -57,13 +90,17 @@ export function validateMemoryAnswer(
     // particular, a deck excerpt cannot be relabeled as a follow-up memo.
     const supportedDocuments = block.supports.map((support) => byId.get(support.evidenceId))
       .filter((item): item is MemoryEvidence => item?.kind === "document");
-    for (const [description, docType] of [[/\bmemos?\b/i, "memo"], [/\bdecks?\b/i, "pitch_deck"], [/\bnotes\b/i, "notes"]] as const) {
-      if (description.test(block.text) && block.supports.length &&
+    for (const [description, docType] of [[/\bmemos?\b/gi, "memo"], [/\bdecks?\b/gi, "pitch_deck"], [/\bnotes\b/gi, "notes"]] as const) {
+      const asserted = [...block.text.matchAll(description)].some((match) =>
+        !isSourceAbsence(block.text, match.index!, match.index! + match[0].length));
+      if (asserted && block.supports.length &&
         !supportedDocuments.some((item) => item.documentType === docType)) {
         throw new Error("Generated text describes a source type that was not supplied as support.");
       }
     }
-    if (/\b(?:follow-up|later|subsequent|updated)\s+(?:memo|deck|document)\b/i.test(block.text) &&
+    const assertedLaterSource = [...block.text.matchAll(/\b(?:follow[- ]?up|later|subsequent|updated)\s+(?:memos?|decks?|documents?|notes)\b/gi)]
+      .some((match) => !isSourceAbsence(block.text, match.index!, match.index! + match[0].length));
+    if (assertedLaterSource &&
       !supportedDocuments.some((item) => /follow.?up|later|subsequent|updated/i.test(item.documentName ?? ""))) {
       throw new Error("Generated text introduces an unverified later source.");
     }

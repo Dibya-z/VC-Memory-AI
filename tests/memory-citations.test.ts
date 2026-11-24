@@ -80,6 +80,60 @@ test("missing evidence answer uses no unrelated citations", () => {
   assert.deepEqual(result.citations, []);
 });
 
+test("missing later sources are valid unknowns rather than invented affirmative sources", () => {
+  const texts = [
+    "No updated document is available in memory.",
+    "No later memo is retained in memory.",
+    "There is no subsequent deck recorded in memory.",
+    "No follow-up notes are available in memory.",
+    "The updated document is not available in memory.",
+    "A later memo isn't retained in memory.",
+    "The subsequent deck isn’t recorded in memory.",
+    "The updated document is unavailable in memory.",
+    "We haven't recorded an updated document.",
+    "We haven’t received any follow-up notes.",
+    "We did not find a later memo in memory.",
+    "There isn't any updated document in memory.",
+    "There aren’t any later notes in memory.",
+    "Memory does not include an updated document.",
+    "No later memo exists in memory.",
+  ];
+  for (const text of texts) {
+    const result = validateMemoryAnswer({ blocks: [{ kind: "unknown", text, supports: [] }] }, [source]);
+    assert.match(result.answer, /Not recorded \/ uncertain:/, text);
+    assert.deepEqual(result.citations, [], text);
+  }
+});
+
+test("an absent source mention does not require that source type as support for a separate claim", () => {
+  const result = validateMemoryAnswer(answer("Revenue was approximately $9k MRR. No updated memo is available in memory."), [source]);
+  assert.equal(result.citations.length, 1);
+  assert.equal(result.citations[0].documentName, "notes.txt");
+});
+
+test("absence wording cannot exempt affirmative invented later sources in the same block", () => {
+  for (const text of [
+    "An updated document is available in memory.",
+    "The later memo records improved revenue.",
+    "Updated notes report improved revenue.",
+    "No updated document is available in memory. A later memo records improved revenue.",
+    "No updated document is available in memory, but a later memo records improved revenue.",
+    "No updated document is available in memory; however, a later memo records improved revenue.",
+    "No updated document is available in memory and a later memo records improved revenue.",
+    "The later memo records improved revenue, but no updated document is available in memory.",
+    "An updated document is not unavailable in memory.",
+  ]) {
+    assert.throws(() => validateMemoryAnswer({ blocks: [{ kind: "unknown", text, supports: [] }] }, [source]), /later source/, text);
+  }
+});
+
+test("absence statements preserve independent filename, citation and exact-quote validation", () => {
+  assert.throws(() => validateMemoryAnswer({ blocks: [{ kind: "unknown", text: "No updated invented.pdf is available.", supports: [] }] }, [source]), /unknown document/);
+  assert.throws(() => validateMemoryAnswer({ blocks: [{ kind: "unknown", text: "No updated document is available in memory.", supports: [{ evidenceId: "invented", quote: "Unavailable source quote" }] }] }, [source]), /not supplied/);
+  assert.throws(() => validateMemoryAnswer({ blocks: [{ kind: "unknown", text: "No updated document is available in memory.", supports: [{ evidenceId: source.id, quote: "This excerpt was never retained." }] }] }, [source]), /does not match/);
+  assert.throws(() => validateMemoryAnswer({ blocks: [{ kind: "fact", text: "No updated document is available in memory.", supports: [] }] }, [source]), /requires/);
+});
+
 test("obviously unfinished clauses and list items fail even with a completed JSON envelope", () => {
   for (const text of ["Alpha founders are Ada and", "Principal recorded concerns:", "The important conditions are -", "Founders are Ada.\n1."]) {
     assert.throws(() => validateMemoryAnswer(answer(text), [source]), /unfinished/);
